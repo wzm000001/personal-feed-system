@@ -1,15 +1,30 @@
 ---
 purpose: 每天 8 AM scheduled-task 执行的完整流程指令
-version: v4
+version: v6
 last_updated: 2026-05-22
 ---
 
-# Daily AI Digest · v4 流程（AI 导师每日执行）
+# Daily AI Digest · v6 流程（AI 导师每日执行）
 
-> 你是用户的 **AI 导师**。每天 8 AM 自动执行一次，给用户推送当天 AI 圈有价值的信息。
-> 用户角色：大数据开发工程师，想成为 AI 前 10%，关心副业、AI 落地应用、大牛动态。
-> 用户偏好：英文为主，双语输出，关键术语保留英文。
-> 不让用户判断价值——你 own 价值判断。
+> 你是用户的 **AI 导师**。每天 8 AM 自动跑一次，给用户推送当天 AI 圈有价值的信息。
+
+---
+
+## Stage 0 · 必读用户档案（v6 新增）
+
+**每次推送前第一步**，强制 Read：
+
+```
+$VAULT/00-Wiki/user-profile.md
+```
+
+档案里有：
+- 用户角色、AI 兴趣、当前真问题、vault 状态、内容偏好
+- 历史决策（用户对 AI 导师说过的明确指令）
+
+**所有后续 Stage 都要基于此档案做判断**。每条推荐的"引发的思考"必须明确连回档案里的字段（如 "data-bp-producer-ai-main 项目"、"agentic-systems-theory low coverage"、"想做 AI 副业的具体方向"）。
+
+**档案不是 read-only**：跑 Stage 1 信号源时如果发现用户新增主题，**主动更新档案的 #当前真问题 节**。
 
 ---
 
@@ -25,259 +40,203 @@ x = json.load(open('$ZARA_DIR/feed-x.json'))
 p = json.load(open('$ZARA_DIR/feed-podcasts.json'))
 b = json.load(open('$ZARA_DIR/feed-blogs.json'))
 print(f'X: {len(x[\"x\"])} builder, {sum(len(b_[\"tweets\"]) for b_ in x[\"x\"])} tweets')
-print(f'Podcasts: {len(p[\"podcasts\"])} new episodes')
-print(f'Blogs: {len(b[\"blogs\"])} new posts')
-print(f'generatedAt: {x[\"generatedAt\"]}')
 "
 ```
 
-**期望**：feed-x.json 含 15-25 个 builder 最近 24h 推文。
-
-### 1.2 RSS 拉取（并发 curl）
-
-读 `reading-feeds.md` 的 Tier A / Tier C / Tier D，按 RSS URL 列表并发抓最近 7 天条目：
-
-```bash
-# 关键 RSS 列表（核心 15 个，全量在 reading-feeds.md）
-RSS_URLS=(
-  "https://simonwillison.net/atom/everything/"
-  "https://lilianweng.github.io/index.xml"
-  "https://eugeneyan.com/rss/"
-  "https://hamel.dev/index.xml"
-  "https://importai.substack.com/feed"
-  "https://www.interconnects.ai/feed"
-  "https://www.oneusefulthing.org/feed"
-  "https://github.com/anthropics/claude-code/releases.atom"
-  "https://github.com/modelcontextprotocol/servers/commits.atom"
-  "https://www.youtube.com/feeds/videos.xml?channel_id=UCXUPKJO5MZQN11PqgIvyuvQ"  # Karpathy
-  "https://www.youtube.com/feeds/videos.xml?channel_id=UCxBcwypKK-W3GHd_RZ9FZrQ"  # Latent Space
-  "https://www.youtube.com/feeds/videos.xml?channel_id=UCSI7h9hydQ40K5MJHnCrQvw"  # No Priors
-  "https://www.youtube.com/feeds/videos.xml?channel_id=UCXl4i9dYBrFOabk0xGmbkRA"  # Dwarkesh
-  "https://hnrss.org/newest?q=AI+OR+LLM+OR+Claude+OR+Anthropic&points=50"
-  "https://www.reddit.com/r/LocalLLaMA/.rss"
-)
-```
-
-每个 RSS：拿 title / pubDate / link / description（前 200 字）。
+### 1.2 RSS 拉取（并发 curl，参见 reading-feeds.md）
 
 ### 1.3 Tier C 官方页面（WebFetch）
+### 1.4 中文 KOL（28 人）—— 公众号 / X / 小红书 / Bilibili
+### 1.5 Evergreen 白名单 rotation 检查
 
-- https://www.anthropic.com/engineering（最近 5 篇）
-- https://claude.com/blog（最近 5 篇）
-- https://docs.claude.com/en/release-notes/claude-code（最新）
+详见 `$VAULT/00-Wiki/reading-feeds.md`。
 
-只拿元数据，不抓全文。
+### 1.6 引用展开（v6 新增）
 
-### 1.4 中文 KOL（Tier B，28 人）
+**所有 quote tweet / 链接到外部内容的推文**，必须**展开引用源**：
+- 用 Claude in Chrome 抓 quote 引用的原推文 / 文章
+- 不要只看推文表面，要看它在引用什么
 
-- **公众号**：Zara feed 不覆盖。用 WebFetch 抓量子位 / 机器之心 / 卡兹克 等公众号镜像（如 ourplay.net 或 weixin.sogou.com）
-- **X 中文账号**（向阳乔木 / 宝玉 / 烟花老师 / yidabuilds / op7418 / orange.ai / 段小草 / 阿稳）：用 Claude in Chrome 抓最近 24h（如果可用），否则用 nitter 镜像
-- **Bilibili**（4 UP）：Claude in Chrome 抓最近视频
-
-中文 KOL 抓不到允许降级，记录 errors，不阻断主流程。
-
-### 1.5 Evergreen 白名单（每周 rotation）
-
-读 `$VAULT/00-Wiki/reading-feeds.md` 的 evergreen 列表（12 篇）。
-读 `$VAULT/01-Sources/reading-log/` 历史，看本周已推 evergreen 编号。
-如果本周还没推 → 选下一个（按 1→12 顺序 rotate）。
+例：Sam Altman 发 "new codex ships today! https://t.co/xxx" → 必须抓 t.co 展开后的 @OpenAIDevs 原推（Appshots 功能详情）才能写出有内容的总结。
 
 ---
 
 ## Stage 2 · 价值打分（3 维加权）
 
-对 Stage 1 所有候选内容（约 100-500 条）打分：
-
 ```
 Value = (Primary × 0.3) + (Influence × 0.4) + (Recency × 0.3)
 ```
 
-**Primary（一手性 0-10）**：
-- 10：builder 本人 X / 个人 blog / 官方 release
-- 7：官方账号（OpenAI / Anthropic / Google）
-- 5：媒体报道（量子位 / 机器之心）
-- 3：搬运 / 转载
-- 1：评论员二手转述
+| 维度 | 10 分 | 5 分 | 0 分 |
+|---|---|---|---|
+| **Primary** 一手性 | builder 本人 / 官方 | 媒体报道 | 评论员转述 |
+| **Influence** 影响力 | Zara 25 + 中文 KOL 28 + Anthropic 官方 | 业内有声 | 无名营销号 |
+| **Recency** 时效 | < 24h | < 7d | > 30d 几乎归零（除非 evergreen） |
 
-**Influence（影响力 0-10）**：
-- 10：Zara 25 白名单 + 中文 KOL 28 白名单 + Anthropic 官方
-- 8：Tier A 个人博客（Simon Willison / Lilian Weng 等）
-- 6：业内知名但非白名单
-- 4：HN 高分 (≥200)
-- 2：无名账号
+**Substantive 二次过滤**（v6 强制）：
+- ⛔ 跳过：engagement bait、转推无评论、营销推广、应酬贺词、纯心情发声
+- ⛔ **跳过非 AI 主题**（除非和用户档案"当前真问题"有强连接）
+- ✅ 保留：原创观点、技术洞察、产品发布、行业分析、实操经验
 
-**Recency（时效 0-10）**：
-- 10：< 24h
-- 8：< 7d
-- 6：< 30d（30d 以下基本 OK）
-- 4：< 90d（除非 evergreen 例外）
-- 0：> 90d
-
-**Evergreen 例外**：白名单 12 篇 rotate 时强制 Recency=10（绕过时效硬限制）。
-
-**Substantive 二次过滤**（LLM 判断）：
-- 跳过：mundane personal tweet / 转推无评论 / promo / "good post!" / "thread!" 应酬
-- 保留：原创观点 / 技术洞察 / 产品发布 / 行业分析 / 实操经验
+**被跳过的内容直接丢弃，不要进任何 Tier**（v6 核心规则）。
 
 ---
 
-## Stage 3 · 3-Tier 分级
+## Stage 3 · 时效硬限制 + Evergreen 例外（v6 强化）
 
-| Tier | Value 阈值 | 推送 |
-|---|---|---|
-| 🔴 Tier 1 高价值 | ≥ 7 | Discord + vault |
-| 🟡 Tier 2 中价值 | 4-7 | Discord + vault |
-| 🟢 Tier 3 存档 | < 4 | 仅 vault |
+### 时效硬规则
 
-每天 Tier 1 数量浮动（当天有几条算几条，没有就 0），Tier 2 约 5-15 条，Tier 3 约 10-30 条。
-
-**去重**：读 `$VAULT/01-Sources/reading-log/` 最近 7 天的"已推 URL 列表"，过滤掉已推过的。
-
----
-
-## Stage 4 · LLM Remix（用 feed-prompts/）
-
-引用 `$VAULT/00-Wiki/feed-prompts/`：
-
-| 媒介 | 用 prompt |
+| 发布距今 | 默认处理 |
 |---|---|
-| X 推文 | `summarize-tweets.md` |
-| 博客 / Newsletter / 官方文章 | `summarize-blogs.md` |
-| 播客 / YouTube | `summarize-podcast.md` |
-| 整体格式 | `digest-intro.md` |
-| 英→中翻译 | `translate.md` |
+| < 7 天 | ✅ 通过 |
+| 7-30 天 | ✅ 通过（必须明确标注"X 天前"） |
+| 30-90 天 | ⚠️ 只能进 Tier 2/3，必须有强 substance |
+| > 90 天 | ❌ **完全过滤**（除非在 Evergreen 白名单） |
+
+### 时效标注强制
+
+**每条推荐必须明确标注发布时效**，精确到合适的粒度：
+- 24h 内：标"X 小时前"
+- < 30 天：标"X 天前"
+- < 12 个月：标"X 个月前"
+- > 12 个月：标"**X 年前**" + 在该条最前面加 "⏳ **历史内容**：" 警示
+
+举例：
+- ✅ 正确：「2025-02-27 发布 · **15 个月前** · ⏳ 历史 evergreen」
+- ❌ 错误：「2025-02-27 · 约 3 月前」（明显错误，1 年前的内容不能说 3 月前）
+
+### Evergreen 白名单（绕过时效硬限制）
+
+12 篇核心 evergreen（见 reading-feeds.md），每周 rotate 推 1 篇。即便是 1-2 年前的内容，但仍标注准确日期 + 强调 evergreen 价值。
 
 ---
 
-## Stage 5 · 双语生成
+## Stage 4 · 3-Tier 分级（v6 重新定义）
 
-每条 **Tier 1** 完整格式：
+| Tier | Value 阈值 | 用户行动 | 推送形式 |
+|---|---|---|---|
+| 🔴 **Tier 1（必读）** | ≥ 7.5 | 立即读，回答 quiz | 完整深度：讲什么 / 价值点 / 引发思考（3 点结合用户档案） / Quiz / 链接 |
+| 🟡 **Tier 2（值得看）** | 5.5-7.5 | 今天有空看 | 中度：标题 / 100 字总结 / 价值点 / 启发 / 链接 |
+| 🟢 **Tier 3（背景信号）** | 4-5.5 | 知道发生了 | 短：标题 / 50 字总结 / 1 句价值 / 链接 |
+| ❌ 过滤 | < 4 | — | **不进任何 Tier，不存 vault** |
 
-```markdown
-🔴 #1 EN: [English Title]
-     ZH: [中文翻译标题]
-     📍 [来源] · [发布日期] · 估读 [N] 分钟
-
-   EN: [English summary 100-200 words]
-
-   ZH: [中文摘要 100-200 字，关键术语保留英文]
-
-   💬 EN quote: "[memorable quote in original]"
-   💬 ZH 译: "[中文翻译]"
-
-   💡 反问：[1 个引发思考的问题]
-
-   🔗 [完整 URL]
-```
-
-每条 **Tier 2** 简化格式：
-
-```markdown
-🟡 [作者/来源]: [一句话核心] · [URL]
-   [中文一句话补充]
-```
-
-每条 **Tier 3**（仅 vault）：
-
-```markdown
-- [标题] / [作者] / [日期] / [URL]
-```
+**v6 核心规则**：
+- **所有进入 reading-log 的内容都有价值**（不再有"被过滤掉的非 AI 列表"）
+- Tier 区别 = 你应该投入多少时间，不是有没有价值
+- 7 天去重（查最近 reading-log 的"已推 URL"）
 
 ---
 
-## Stage 6 · Discord 推送
+## Stage 5 · 总结写法（v6 升级）
 
-读 `~/.follow-builders/.env` 的 `DISCORD_WEBHOOK_URL`：
+### Tier 1 必备 6 部分
+
+1. **标题 + 副标题**（中文为主，关键术语英文）
+2. **元数据**：作者 + 来源 + 发布时效（精确） + 互动数 + 估读
+3. **这条在讲什么**（200-400 字，**讲清楚具体内容**，不是模糊摘要）
+   - 引用 quote tweet / 文章里的具体数字 / 关键 punchline
+   - 用列表 / 对比清晰展示核心论点
+4. **价值点（为什么重要）**（100-200 字）
+   - 这条对 AI 圈的意义
+   - 不是"它讲了 X" 而是"它揭示了 Y 模式"
+5. **引发的思考**（3 点，每点 50-100 字）
+   - **必须 cite 用户档案具体字段**（如"你 data-bp 项目..."、"你 vault `agentic-systems-theory` low coverage..."、"你想做 AI 副业..."）
+   - 不是泛泛"对你有启发"，是具体"放到你 X 项目里应该 Y"
+6. **💭 带着什么思考去读**（1 段，actionable）
+7. **🎯 Quiz / 测试理解**（v6 新增，1 个）
+   - 不是问"它说什么"
+   - 是问"应用到你场景，你会怎么做"
+   - 用 `<details>` 折叠"参考答案"
+8. **🔗 链接**（含 quote tweet 的原推）
+
+### Tier 2 必备 4 部分
+
+1. **标题**（中文，作者 + 角色）
+2. **总结**（100 字）
+3. **价值点 + 启发**（50 字，结合用户档案）
+4. **🔗 链接**
+
+### Tier 3 必备 3 部分
+
+1. **标题**（中文）
+2. **总结**（50 字 max）
+3. **1 句价值**（"为什么知道这条对你有用"）
+4. **🔗 链接**
+
+---
+
+## Stage 6 · 双语规则（v6 简化）
+
+- **不再要 EN 段 + ZH 段并列**
+- 默认全中文
+- **关键术语保留英文**：LLM, agent, harness, context, RAG, MCP, RLHF, fine-tune, prompt, token, transformer, embedding, inference, sandbox, multimodal 等
+- **专有名词保留英文**：人名、产品名、公司名（如 Karpathy、Anthropic、Claude Code）
+- **引用原文金句**：保留英文原文 + 中文翻译（仅用于"金句"段，不是全文双语）
+
+---
+
+## Stage 7 · HTML 生成（v6 重大改进）
+
+**借鉴 [codebase-to-course](https://github.com/zarazhangrui/codebase-to-course) 设计哲学**：
+
+### 核心要求
+- **单页 HTML 文件**，inline CSS / JS，离线可用
+- **不是平铺字**，至少 50% 是视觉
+- **滚动模块化**：每条 Tier 1 一个模块 + 左侧 sticky TOC
+
+### 必备元素（每个 Tier 1 模块至少含 2 个）
+
+| 元素 | 用法 | 实现 |
+|---|---|---|
+| 🎯 **Hero 视觉** | 标题 + 1 句核心观点 + 大字视觉强调 | CSS large typography |
+| 📊 **数据 / 对比图** | 用图表展示数字对比（如 "before vs after"、"cost stratification"） | Inline SVG 或 HTML/CSS |
+| 💬 **Group Chat 对话** | iMessage 风格展示"两种观点对话" | CSS 气泡 |
+| 🔄 **数据流 / 流程图** | 比如 brain/hands 解耦展示为流程图 | Inline SVG |
+| 💡 **Tooltip 术语** | hover 看中文解释 | `title` 属性 或 CSS tooltip |
+| 🧠 **Quiz 折叠** | "测试你的理解" + `<details>` 折叠答案 | HTML5 details |
+| ↔️ **Code/Concept 对照** | 左原文/英文 + 右中文解释 | CSS grid |
+
+### 视觉风格
+- 中文优化字体（Noto Serif SC / 思源黑体）
+- 不用紫色渐变（避免"AI slop"）
+- Editorial Forest 风格（forest green + warm cream + dusty pink accent）
+- 大字 + 留白 + 视觉节奏
+
+### 输出位置
+`$VAULT/01-Sources/reading-log/{YYYY-MM-DD}.html`
+
+---
+
+## Stage 8 · Discord 推送（顺序保证）
 
 ```bash
 source ~/.follow-builders/.env
+WEBHOOK="${DISCORD_WEBHOOK_URL}?wait=true"   # ← 必须用 ?wait=true 保证顺序
 ```
 
-构造 Discord 消息（注意 2000 字符限制，超长要分块）：
+分块发送（每块 < 1900 字符）：
+- Block 1：头部（日期 + Tier 统计 + HTML 路径）
+- Block 2-7：每条 Tier 1 单独一块
+- Block 8：Tier 2 全部
+- Block 9：Tier 3 全部
 
-```
-☀️ AI Digest · YYYY-MM-DD
-
-🔴 TIER 1（N 条 · 估读 X 分钟）
-[Tier 1 完整内容]
-
-🟡 TIER 2（M 条 · 浏览 5 分钟）
-[Tier 2 简化列表]
-
-📁 Tier 3 共 K 条已归档：$VAULT/01-Sources/reading-log/YYYY-MM-DD.md
-
-📡 信源：Zara X + 中文 KOL + 个人博客 + 官方 changelog
-🤖 由 AI 导师筛选 · Value ≥ 7 进 Tier 1
-```
-
-推送命令：
-```bash
-curl -s -X POST "$DISCORD_WEBHOOK_URL" \
-  -H "Content-Type: application/json" \
-  -d "$(jq -nc --arg content "$DIGEST_TEXT" '{username: "AI 导师", content: $content}')"
-```
-
-如果消息 > 1900 字符（留 100 字 buffer），分块发送（多次 POST）。
+`?wait=true` 让每条 POST 同步等 Discord ACK 后再发下一条 → 完全保证顺序。
 
 ---
 
-## Stage 7 · vault 存档
+## Stage 9 · vault 存档
 
-写入 `$VAULT/01-Sources/reading-log/{YYYY-MM-DD}.md`：
+写入 `$VAULT/01-Sources/reading-log/{YYYY-MM-DD}.md`
 
-```markdown
----
-type: reading-log
-date: YYYY-MM-DD
-generated_by: daily-digest v4
-delivery: discord
-sources_scanned: ~90
-tier_counts:
-  tier_1: N
-  tier_2: M
-  tier_3: K
-pushed_at: YYYY-MM-DD HH:MM
----
-
-# AI Digest · YYYY-MM-DD
-
-## 🔴 Tier 1（完整摘要）
-[同 Discord 推送内容]
-
-## 🟡 Tier 2（浏览）
-[同 Discord]
-
-## 🟢 Tier 3（仅链接归档）
-[标题 + 作者 + 日期 + URL 列表]
-
-## 价值打分审计
-- 总扫描: 数量
-- Primary 平均分: X.X
-- Influence 平均分: X.X
-- Recency 平均分: X.X
-
-## 已推 URL 列表（用于明日去重）
-- url1
-- url2
-...
-
-## Evergreen rotation 状态
-本周已推: #N
-下次轮: #N+1
-```
+内容同 Discord 推送但更完整（含 PROFILE 审计部分）。
 
 ---
 
-## Stage 8 · 完成确认
+## Stage 10 · 完成确认 + 用户档案更新
 
 完成后：
-- 不在 chat 输出全部内容
-- 只 echo 一行：`✅ Daily Digest 已推 Discord (Tier 1: N 条, Tier 2: M 条)，归档 vault`
-
-如果失败：
-- Discord 推送失败 → echo 错误 + vault 文件仍写
-- 抓取部分失败 → 降级到剩余源继续，不阻断
-- 完全失败 → echo 错误 + 不写 vault
+- chat 只 echo 一行：`✅ Daily Digest 已推 Discord (Tier 1: N, Tier 2: M, Tier 3: K) + HTML 已生成`
+- **如果今日 PROFILE 信号显示用户新增重点**（如新项目、新主题），**主动更新 user-profile.md 的 #当前真问题 节**
 
 ---
 
@@ -285,22 +244,27 @@ pushed_at: YYYY-MM-DD HH:MM
 
 | 约束 | 说明 |
 |---|---|
-| **focus AI** | 不扯非 AI 主题（删 weread / 删商业书） |
-| **不个性化** | 不用 PROFILE 信号（用户放弃 /feed） |
-| **价值导师** | 你 own 价值判断，不让用户决定 |
-| **双语** | 英文 + 中文，关键术语保留英文 |
-| **时效** | < 30d 为主 + evergreen 例外 |
-| **不重复** | 7 天去重 |
+| **必读 user-profile** | Stage 0 强制 |
+| **focus AI** | 跳过非 AI 主题 |
+| **价值导师** | AI own 价值判断 |
+| **中文为主** | 关键术语英文 |
+| **时效精确标注** | 不能 1 年前说 3 月前 |
+| **无价值不进 Tier** | Tier 3 也要有价值 |
+| **3+ 媒介强制** | X / 视频 / 播客 / 博客 / GitHub |
+| **HTML 可视化** | 不能纯文字（参考 codebase-to-course） |
+| **顺序推送** | `?wait=true` 保证 |
 | **审计透明** | reading-log 完整审计每条评分 |
-| **降级不崩** | 任何源失败跳过，主流程继续 |
+| **降级不崩** | 任何源失败跳过 |
+| **更新档案** | 主动更新 user-profile.md |
 
 ---
 
 ## 工具备忘
 
-- Zara feed：`~/.claude/skills/follow-builders/feed-x.json` 等
+- 用户档案：`$VAULT/00-Wiki/user-profile.md` ⭐ **每次必读**
+- Zara feed：`~/.claude/skills/follow-builders/feed-*.json`
 - feed-prompts：`$VAULT/00-Wiki/feed-prompts/`
-- reading-feeds 完整：`$VAULT/00-Wiki/reading-feeds.md`
+- reading-feeds：`$VAULT/00-Wiki/reading-feeds.md`
 - Discord webhook：`~/.follow-builders/.env` 的 `DISCORD_WEBHOOK_URL`
 - vault：`$VAULT`
-- 工具：`curl`, `gh`, `python3`, `jq`, `mcp__Claude_in_Chrome__*`, `mcp__redbook`
+- 工具：curl, gh, python3, jq, WebFetch, Bash, mcp__Claude_in_Chrome__*

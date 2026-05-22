@@ -1,0 +1,1325 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Digest · 2026-05-22 · 可视化版</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;500;700;900&family=Noto+Sans+SC:wght@400;500;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --forest: #2d4a3e;
+  --forest-dark: #1a2e26;
+  --forest-light: #5b7b6a;
+  --pink: #d4a5a5;
+  --pink-soft: #faecec;
+  --cream: #faf6f0;
+  --cream-dark: #f0ebe0;
+  --cream-darker: #e6dfd0;
+  --ink: #1a1a1a;
+  --ink-soft: #4a4a4a;
+  --ink-muted: #8a8a8a;
+  --rule: #d4cfc0;
+  --accent: #c0392b;
+  --gold: #d4a574;
+  --blue: #3a6b8c;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--cream);
+  color: var(--ink);
+  font-family: 'Noto Serif SC', serif;
+  line-height: 1.8;
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Layout: sidebar + main */
+.layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+/* Sidebar TOC */
+.sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 40px 24px;
+  background: var(--cream-dark);
+  border-right: 1px solid var(--rule);
+}
+.sidebar h1 {
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 12px;
+  letter-spacing: 3px;
+  color: var(--forest-light);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+.sidebar .date {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  color: var(--ink-soft);
+  margin-bottom: 28px;
+}
+.sidebar nav { font-family: 'Noto Sans SC', sans-serif; font-size: 13px; }
+.sidebar .nav-section { margin-bottom: 24px; }
+.sidebar .nav-label {
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--ink-muted);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+.sidebar a {
+  display: block;
+  padding: 6px 8px;
+  color: var(--forest-dark);
+  text-decoration: none;
+  border-radius: 4px;
+  margin-bottom: 2px;
+  font-size: 13px;
+  line-height: 1.4;
+}
+.sidebar a:hover { background: var(--cream); }
+.sidebar a .num {
+  display: inline-block;
+  width: 24px;
+  color: var(--forest-light);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+}
+
+/* Main content */
+.main {
+  padding: 60px 56px 100px;
+  max-width: 880px;
+}
+
+/* Hero */
+.hero {
+  text-align: center;
+  margin-bottom: 80px;
+  padding-bottom: 40px;
+  border-bottom: 3px double var(--forest);
+}
+.hero .label {
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 13px;
+  letter-spacing: 5px;
+  color: var(--forest-light);
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+.hero h1 {
+  font-size: 56px;
+  font-weight: 900;
+  color: var(--forest);
+  letter-spacing: -1px;
+  line-height: 1.1;
+  margin-bottom: 16px;
+}
+.hero .subtitle {
+  font-size: 18px;
+  color: var(--ink-soft);
+  margin-bottom: 24px;
+  font-style: italic;
+}
+.hero .stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  max-width: 600px;
+  margin: 32px auto 0;
+  font-family: 'Noto Sans SC', sans-serif;
+}
+.hero .stat-box {
+  background: white;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 16px;
+}
+.hero .stat-box .num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--forest);
+  display: block;
+  margin-bottom: 4px;
+}
+.hero .stat-box .label-sm {
+  font-size: 12px;
+  color: var(--ink-soft);
+  letter-spacing: 1px;
+}
+
+/* Section divider */
+.section-divider {
+  margin: 60px 0 40px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.section-divider .tier-badge {
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 12px;
+  padding: 6px 14px;
+  border-radius: 4px;
+  letter-spacing: 2px;
+  color: white;
+}
+.section-divider.t1 .tier-badge { background: var(--accent); }
+.section-divider.t2 .tier-badge { background: var(--gold); }
+.section-divider.t3 .tier-badge { background: var(--forest-light); }
+.section-divider h2 {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--forest);
+}
+.section-divider .meta-right {
+  margin-left: auto;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  color: var(--ink-muted);
+}
+
+/* Tier 1 Module */
+.module {
+  background: white;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  margin-bottom: 48px;
+  overflow: hidden;
+  scroll-margin-top: 20px;
+}
+.module-hero {
+  background: var(--forest-dark);
+  color: var(--cream);
+  padding: 32px 36px;
+  position: relative;
+}
+.module-hero .num-tag {
+  position: absolute;
+  top: 16px;
+  right: 24px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--cream-darker);
+  letter-spacing: 1px;
+}
+.module-hero h2 {
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1.2;
+  margin-bottom: 12px;
+  color: white;
+}
+.module-hero .core-point {
+  font-size: 17px;
+  color: var(--cream);
+  font-style: italic;
+  border-left: 3px solid var(--gold);
+  padding-left: 16px;
+  margin-top: 16px;
+  line-height: 1.5;
+}
+.module-meta {
+  background: var(--cream-dark);
+  padding: 14px 36px;
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 12px;
+  color: var(--ink-soft);
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid var(--rule);
+}
+.module-meta span { display: flex; align-items: center; gap: 4px; }
+.module-meta .vintage {
+  background: var(--pink-soft);
+  color: var(--accent);
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-weight: 700;
+}
+
+.module-body { padding: 32px 36px; }
+.module-body h3 {
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--forest);
+  letter-spacing: 2px;
+  margin-top: 28px;
+  margin-bottom: 14px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--rule);
+}
+.module-body h3:first-child { margin-top: 0; }
+.module-body p { margin-bottom: 14px; color: var(--ink); }
+.module-body ul, .module-body ol { margin: 10px 0 16px 24px; }
+.module-body li { margin-bottom: 6px; }
+
+/* Inline tooltip term */
+.term {
+  border-bottom: 1px dashed var(--forest-light);
+  cursor: help;
+  color: var(--forest-dark);
+  font-weight: 500;
+  position: relative;
+}
+.term::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--forest-dark);
+  color: var(--cream);
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  white-space: nowrap;
+  max-width: 280px;
+  white-space: normal;
+  width: 240px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s;
+  z-index: 10;
+  font-family: 'Noto Sans SC', sans-serif;
+  font-weight: 400;
+  line-height: 1.4;
+}
+.term:hover::after { opacity: 1; }
+
+/* Group Chat 对话气泡 */
+.chat-block {
+  background: var(--cream-dark);
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin: 20px 0;
+}
+.chat-block .chat-title {
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 12px;
+  color: var(--ink-soft);
+  letter-spacing: 1px;
+  margin-bottom: 12px;
+  text-align: center;
+}
+.chat-bubble {
+  display: flex;
+  margin-bottom: 14px;
+  align-items: flex-start;
+  gap: 10px;
+}
+.chat-bubble .avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--forest);
+  color: var(--cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  flex-shrink: 0;
+  font-family: 'Noto Sans SC', sans-serif;
+}
+.chat-bubble.left .avatar { background: var(--blue); }
+.chat-bubble.right { flex-direction: row-reverse; }
+.chat-bubble.right .avatar { background: var(--accent); }
+.chat-bubble .bubble {
+  background: white;
+  padding: 10px 14px;
+  border-radius: 14px;
+  font-size: 14px;
+  max-width: 75%;
+  border: 1px solid var(--rule);
+}
+.chat-bubble .bubble .who {
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 11px;
+  color: var(--ink-muted);
+  margin-bottom: 4px;
+  font-weight: 700;
+}
+.chat-bubble.right .bubble { background: var(--pink-soft); border-color: var(--pink); }
+.chat-bubble.right .bubble .who { color: var(--accent); }
+
+/* SVG 流程图容器 */
+.diagram {
+  background: var(--cream-dark);
+  padding: 24px;
+  border-radius: 8px;
+  margin: 20px 0;
+  text-align: center;
+}
+.diagram-caption {
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 12px;
+  color: var(--ink-soft);
+  margin-top: 10px;
+  font-style: italic;
+}
+
+/* 数据对比卡片 */
+.compare-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin: 20px 0;
+}
+.compare-card {
+  background: var(--cream-dark);
+  padding: 20px;
+  border-radius: 8px;
+  border-top: 4px solid var(--ink-muted);
+}
+.compare-card.expected { border-top-color: var(--blue); }
+.compare-card.actual { border-top-color: var(--accent); }
+.compare-card .label {
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 11px;
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+  color: var(--ink-muted);
+  text-transform: uppercase;
+}
+.compare-card .content { font-size: 15px; color: var(--ink); }
+
+/* Quiz 折叠块 */
+details.quiz {
+  background: var(--pink-soft);
+  border: 1px solid var(--pink);
+  border-radius: 8px;
+  margin: 24px 0;
+  padding: 16px 20px;
+}
+details.quiz summary {
+  font-family: 'Noto Sans SC', sans-serif;
+  font-weight: 700;
+  cursor: pointer;
+  color: var(--accent);
+  font-size: 15px;
+  list-style: none;
+}
+details.quiz summary::before {
+  content: "🎯 ";
+  margin-right: 8px;
+}
+details.quiz[open] summary::after {
+  content: " ↑ 点击收起";
+  color: var(--ink-muted);
+  font-weight: 400;
+  font-size: 12px;
+}
+details.quiz:not([open]) summary::after {
+  content: " ↓ 点击展开";
+  color: var(--ink-muted);
+  font-weight: 400;
+  font-size: 12px;
+}
+.quiz-question {
+  margin: 12px 0;
+  font-style: italic;
+  color: var(--ink);
+}
+.quiz-answer {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--pink);
+  font-size: 14px;
+  color: var(--ink-soft);
+}
+.quiz-answer strong { color: var(--forest-dark); }
+
+/* 思考框 */
+.think-box {
+  background: linear-gradient(135deg, var(--cream-dark) 0%, var(--pink-soft) 100%);
+  border-left: 4px solid var(--accent);
+  padding: 18px 22px;
+  margin: 20px 0;
+  border-radius: 0 8px 8px 0;
+  position: relative;
+}
+.think-box::before {
+  content: "💭 带着这个思考去读";
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 11px;
+  color: var(--accent);
+  font-weight: 700;
+  letter-spacing: 2px;
+  display: block;
+  margin-bottom: 8px;
+}
+.think-box p { color: var(--forest-dark); font-style: italic; margin: 0; }
+
+/* 价值框 */
+.value-box {
+  background: linear-gradient(135deg, #f5f0e8 0%, #e8e0d0 100%);
+  padding: 16px 20px;
+  border-radius: 6px;
+  margin: 14px 0;
+}
+.value-box .vlabel {
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 11px;
+  color: var(--gold);
+  letter-spacing: 2px;
+  margin-bottom: 6px;
+  font-weight: 700;
+}
+
+/* Links footer */
+.module-links {
+  background: var(--cream-dark);
+  padding: 16px 36px;
+  border-top: 1px solid var(--rule);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+}
+.module-links a {
+  display: block;
+  color: var(--forest);
+  text-decoration: none;
+  margin-bottom: 4px;
+  word-break: break-all;
+}
+.module-links a:hover { text-decoration: underline; }
+.module-value {
+  margin-top: 12px;
+  font-size: 11px;
+  color: var(--ink-muted);
+  font-family: 'Noto Sans SC', sans-serif;
+}
+
+/* Tier 2 卡片 */
+.t2-card {
+  background: white;
+  border: 1px solid var(--rule);
+  border-left: 4px solid var(--gold);
+  padding: 24px 28px;
+  border-radius: 0 8px 8px 0;
+  margin-bottom: 20px;
+  scroll-margin-top: 20px;
+}
+.t2-card h3 {
+  font-size: 19px;
+  color: var(--forest-dark);
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.t2-card .meta {
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 12px;
+  color: var(--ink-muted);
+  margin-bottom: 12px;
+}
+.t2-card .summary { color: var(--ink); margin-bottom: 12px; font-size: 15px; }
+.t2-card .value {
+  background: var(--cream-dark);
+  padding: 10px 14px;
+  border-radius: 4px;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+.t2-card .value strong { color: var(--forest); }
+.t2-card a {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--forest-light);
+  text-decoration: none;
+  word-break: break-all;
+}
+
+/* Tier 3 简洁列表 */
+.t3-list {
+  background: white;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 24px 28px;
+}
+.t3-item {
+  padding: 14px 0;
+  border-bottom: 1px dashed var(--rule);
+}
+.t3-item:last-child { border-bottom: none; }
+.t3-item h4 {
+  font-size: 16px;
+  color: var(--forest-dark);
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+.t3-item .summary { font-size: 14px; color: var(--ink-soft); margin: 4px 0; }
+.t3-item .value-inline {
+  font-size: 13px;
+  color: var(--gold);
+  font-family: 'Noto Sans SC', sans-serif;
+  font-weight: 500;
+  margin: 4px 0;
+}
+.t3-item .value-inline::before { content: "→ "; color: var(--ink-muted); }
+.t3-item a {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--forest-light);
+  text-decoration: none;
+  word-break: break-all;
+}
+
+/* Footer */
+.footer {
+  margin-top: 80px;
+  padding-top: 40px;
+  border-top: 3px double var(--forest);
+  text-align: center;
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 12px;
+  color: var(--ink-muted);
+}
+.footer a { color: var(--forest); text-decoration: none; }
+
+/* SVG 元素样式 */
+svg .box {
+  fill: white;
+  stroke: var(--forest);
+  stroke-width: 2;
+}
+svg .box-accent { fill: var(--pink-soft); stroke: var(--accent); }
+svg .box-forest { fill: var(--forest); }
+svg .arrow {
+  stroke: var(--forest);
+  stroke-width: 2;
+  fill: none;
+  marker-end: url(#arrowhead);
+}
+svg .label-text {
+  font-family: 'Noto Sans SC', sans-serif;
+  font-size: 12px;
+  fill: var(--ink);
+}
+svg .label-white { fill: white; }
+svg .label-bold {
+  font-weight: 700;
+  font-size: 13px;
+}
+
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; }
+  .sidebar { position: relative; height: auto; }
+  .main { padding: 30px 24px 60px; }
+  .hero h1 { font-size: 36px; }
+  .module-body { padding: 24px; }
+  .compare-cards { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="layout">
+
+<!-- ════════════ SIDEBAR ════════════ -->
+<aside class="sidebar">
+  <h1>AI DIGEST</h1>
+  <div class="date">2026-05-22 · v6</div>
+  <nav>
+    <div class="nav-section">
+      <div class="nav-label">🔴 Tier 1 必读</div>
+      <a href="#t1-1"><span class="num">#1</span>Codex Appshots</a>
+      <a href="#t1-2"><span class="num">#2</span>AI 成本分层</a>
+      <a href="#t1-3"><span class="num">#3</span>Import AI 457</a>
+      <a href="#t1-4"><span class="num">#4</span>Brain/Hands 解耦</a>
+      <a href="#t1-5"><span class="num">#5</span>编程语言可互换</a>
+      <a href="#t1-6"><span class="num">#6</span>Vibe Physics</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">🟡 Tier 2 值得看</div>
+      <a href="#t2"><span class="num">5</span>条浏览</a>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">🟢 Tier 3 背景</div>
+      <a href="#t3"><span class="num">5</span>条信号</a>
+    </div>
+  </nav>
+</aside>
+
+<!-- ════════════ MAIN ════════════ -->
+<main class="main">
+
+<!-- HERO -->
+<section class="hero">
+  <div class="label">PERSONAL FEED · AI DIGEST</div>
+  <h1>每日 AI 精选</h1>
+  <p class="subtitle">为你 (大数据工程师 + 想做 AI 副业 + 前 10% 目标) 量身筛选</p>
+  <div class="stats-grid">
+    <div class="stat-box">
+      <span class="num">6</span>
+      <span class="label-sm">Tier 1 必读</span>
+    </div>
+    <div class="stat-box">
+      <span class="num">5</span>
+      <span class="label-sm">Tier 2 值得看</span>
+    </div>
+    <div class="stat-box">
+      <span class="num">5</span>
+      <span class="label-sm">Tier 3 背景</span>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════ TIER 1 ════════════ -->
+<div class="section-divider t1">
+  <span class="tier-badge">TIER 1</span>
+  <h2>深度阅读</h2>
+  <span class="meta-right">估时 30 分钟</span>
+</div>
+
+<!-- ============ T1-#1 Codex Appshots ============ -->
+<section class="module" id="t1-1">
+  <div class="module-hero">
+    <span class="num-tag">#1 · TODAY</span>
+    <h2>OpenAI Codex 推出 Appshots</h2>
+    <p class="core-point">按下 <strong>Command-Command</strong>，AI 看见你正在看的整个屏幕 —— context 抓取从"用户描述"进化到"AI 主动捕获"。</p>
+  </div>
+  <div class="module-meta">
+    <span>👤 Sam Altman + @OpenAIDevs</span>
+    <span>📱 X</span>
+    <span class="vintage">⏱ 数小时前</span>
+    <span>❤️ 5.7K · 👁️ 1.2M</span>
+    <span>📖 3 分钟</span>
+  </div>
+  <div class="module-body">
+
+    <h3>🔍 这条在讲什么</h3>
+    <p>OpenAI 给 Codex（他们的 AI coding <span class="term" data-tip="agent = 能自主决策 + 调用工具完成多步骤任务的 LLM 系统">agent</span>，对标 Claude Code）推出新功能 <strong>Appshots</strong>：</p>
+    <ul>
+      <li>Mac 上按 <code style="background:var(--cream-dark);padding:2px 6px;border-radius:3px">Command-Command</code> 把当前 app 窗口附到 Codex 对话</li>
+      <li>Codex 拿到 <strong>截图 + 窗口文本</strong>（含屏幕外没滚动到的内容）</li>
+      <li>Mac 所有 plan 可用，Enterprise 即将支持</li>
+    </ul>
+
+    <!-- Group Chat 对比 -->
+    <div class="chat-block">
+      <div class="chat-title">— 工作流对比 —</div>
+      <div class="chat-bubble left">
+        <div class="avatar">😩</div>
+        <div class="bubble">
+          <div class="who">没有 Appshots 时</div>
+          打开 Notion 看 PRD → 截图 → 粘贴到 AI → 描述上下文 → AI 看不清又问 → 复制更多文字...
+        </div>
+      </div>
+      <div class="chat-bubble right">
+        <div class="avatar">⚡</div>
+        <div class="bubble">
+          <div class="who">有了 Appshots</div>
+          看着 Notion PRD → Cmd+Cmd → Codex 已经知道你看什么了 → 直接帮你写代码
+        </div>
+      </div>
+    </div>
+
+    <h3>💎 价值点（为什么重要）</h3>
+    <p>这是 AI coding agent 的 <strong>context UX 革命</strong>：</p>
+    <ul>
+      <li>过去：Cursor / Claude Code 一直在"读 codebase"</li>
+      <li>现在：<strong>"读你屏幕上正在看的应用"是新维度</strong></li>
+      <li>意味着 AI agent 从「项目内助手」扩展到 <strong>「桌面级助手」</strong></li>
+    </ul>
+
+    <h3>🧠 引发的思考（结合你的处境）</h3>
+    <ol>
+      <li><strong>Claude Code 会跟进吗？</strong> Anthropic 已有 Claude in Chrome（你已配对）但只读浏览器。Mac 桌面级 context 抓取是下一步必然</li>
+      <li><strong>对你 data-bp 项目的影响</strong>：你常在 VSCode + 数据仪表盘 + 业务文档间切换。如果 AI 能一键抓任意窗口，<span class="term" data-tip="data-bp-producer-ai-main = 你当前主战场的项目，业务知识 + AI 知识库设计">data-bp</span>"业务背景 → 代码"的传递成本归零</li>
+      <li><strong>隐私边界</strong>：屏幕外内容也被抓 = 你看不到的内容也进 LLM。要警惕</li>
+    </ol>
+
+    <div class="think-box">
+      <p>想象下次让 Claude Code 改 data-bp 代码时，能像 Appshots 一样把"业务方在 Notion 写的 PRD"一键附上。<strong>这个 PRD 当前是怎么传递给 AI 的？这一步的 friction 是多少？</strong></p>
+    </div>
+
+    <details class="quiz">
+      <summary>测试理解</summary>
+      <p class="quiz-question">假设你在 VSCode 看 data-bp 代码，同时在 Notion 看 PRD，想让 Claude Code 改代码符合 PRD。**现在你最快传递 PRD 的方式是什么？这个流程有几步？**</p>
+      <div class="quiz-answer">
+        <p><strong>典型现在流程（5+ 步）</strong>：切到 Notion → Cmd+A 全选 → 复制 → 切到 VSCode → 粘贴给 Claude Code → 描述"这是 PRD"</p>
+        <p><strong>有 Appshots 后（1 步）</strong>：看着 Notion → Cmd+Cmd → AI 已经懂了</p>
+        <p><strong>启发</strong>：Claude Code 没这功能 = 你的 friction 仍然是 5+ 步。考虑：①写个 AppleScript 自动化复制 ②等 Anthropic 跟进 ③把常用 PRD 类型做成 skill 模板</p>
+      </div>
+    </details>
+  </div>
+  <div class="module-links">
+    🔗 <a href="https://x.com/OpenAIDevs/status/2057530207976989179">OpenAIDevs 原始推文（功能详情）</a>
+    🔗 <a href="https://x.com/sama/status/2057559714788258003">Sam Altman 转推</a>
+    <div class="module-value">Value 10.0 · Primary 10 · Influence 10 · Recency 10</div>
+  </div>
+</section>
+
+<!-- ============ T1-#2 Aaron Levie Cost ============ -->
+<section class="module" id="t1-2">
+  <div class="module-hero">
+    <span class="num-tag">#2 · TODAY</span>
+    <h2>AI 模型成本走向"分层"，不会收敛</h2>
+    <p class="core-point">Box CEO: AI chat tools 小 context 时代结束，agents 巨大 context + long-running work 把推理成本拉高一个数量级 —— 企业需要新角色管理多模型成本。</p>
+  </div>
+  <div class="module-meta">
+    <span>👤 Aaron Levie · Box CEO</span>
+    <span>📱 X</span>
+    <span class="vintage">⏱ 8 小时前</span>
+    <span>❤️ 474 · 🔁 48 · 💬 67</span>
+    <span>📖 4 分钟</span>
+  </div>
+  <div class="module-body">
+
+    <h3>🔍 这条在讲什么</h3>
+
+    <!-- 预期 vs 实际对比卡片 -->
+    <div class="compare-cards">
+      <div class="compare-card expected">
+        <div class="label">📊 过去预期</div>
+        <div class="content">
+          模型同质化 → 价格趋同 → 成本<strong>收敛</strong>到单一低价 per token
+        </div>
+      </div>
+      <div class="compare-card actual">
+        <div class="label">⚡ 实际发生</div>
+        <div class="content">
+          模型能力分层 → 成本反向 <strong>stratification（分层）</strong> → 差距越拉越大
+        </div>
+      </div>
+    </div>
+
+    <p>三个核心变化：</p>
+    <ol>
+      <li>AI chat tools（小 <span class="term" data-tip="context = LLM 一次能看的输入信息量，越大能处理越复杂的任务">context</span>、便宜）→ AI agents（巨大 context + long-running + 推理成本 ×10）</li>
+      <li><strong>Frontier 任务</strong>（coding、science、finance、consulting）继续吃贵的 frontier 模型</li>
+      <li><strong>常规任务下沉</strong>到便宜模型（Haiku、GPT-mini），但同一工作流多模型混用</li>
+    </ol>
+
+    <h3>💎 价值点</h3>
+    <p>这是 enterprise AI 部署的真实瓶颈 —— 不是模型能力，是<strong>多模型成本治理</strong>。Box 是企业 SaaS 直接看到客户用 AI 时成本爆炸的真实故事。原本"全用 GPT-4"的简单选型，变成"50 个任务每个该用什么模型"的细颗粒决策。</p>
+
+    <h3>🧠 引发的思考（结合你的处境）</h3>
+    <ol>
+      <li><strong>data-bp 项目 100% 命中</strong>：它是 enterprise AI。「业务知识页」生成属于 frontier 任务（需要 Sonnet 4 的推理）还是常规任务（Haiku 就够）？</li>
+      <li><strong>vault <code>topics/ai-coding-agents</code> 缺这一层</strong>：你之前关注"用什么 AI 工具"，但 Aaron 的视角是"**工作流里多个模型怎么编排**"</li>
+      <li><strong>副业机会信号</strong>：「企业 AI 多模型成本管理」是未填满的工具空白 —— 你想做的副业方向之一</li>
+    </ol>
+
+    <div class="think-box">
+      <p>把 data-bp 核心工作流拆成 5-10 个子任务，每个问：「**这步需要 Sonnet 4 的智能，还是 Haiku 就够？**」<strong>这个拆解动作本身就是 Aaron 说的 "new finance team" 角色。</strong></p>
+    </div>
+
+    <details class="quiz">
+      <summary>测试理解</summary>
+      <p class="quiz-question">data-bp 项目典型工作流可能涉及：①读业务文档 ②抽取关键指标 ③生成知识页结构 ④填充内容 ⑤生成 SQL 查询。**请用 1-5 各打分（1=Haiku 就行 / 5=必须 Sonnet 4），并说明 1 个理由。**</p>
+      <div class="quiz-answer">
+        <p>参考答案（你的判断可能不同）：</p>
+        <ul>
+          <li>①读业务文档 = <strong>2</strong>（结构化提取，Haiku/小模型即可）</li>
+          <li>②抽取关键指标 = <strong>3-4</strong>（需要业务理解，但任务边界清晰）</li>
+          <li>③生成知识页结构 = <strong>5</strong>（需要 reasoning + taste，必须 Sonnet 4）</li>
+          <li>④填充内容 = <strong>3</strong>（按 schema 填，中等模型）</li>
+          <li>⑤生成 SQL 查询 = <strong>4-5</strong>（复杂 join 时需要 reasoning，但简单查询 3 就够）</li>
+        </ul>
+        <p><strong>启发</strong>：这个拆解 + 模型映射就是你 data-bp 项目缺的「成本架构层」。可以尝试在 vault 写一个 <code>concepts/cost-stratification.md</code>。</p>
+      </div>
+    </details>
+  </div>
+  <div class="module-links">
+    🔗 <a href="https://x.com/levie/status/2057663408376516703">Aaron Levie 完整推文</a>
+    <div class="module-value">Value 9.6 · Primary 10 · Influence 9 · Recency 10</div>
+  </div>
+</section>
+
+<!-- ============ T1-#3 Import AI 457 ============ -->
+<section class="module" id="t1-3">
+  <div class="module-hero">
+    <span class="num-tag">#3 · 4 天前</span>
+    <h2>Import AI 457：AI Stuxnet + Positive Alignment</h2>
+    <p class="core-point">Anthropic 联创 Jack Clark 周报：AI 训练管道本身是新攻击面（"AI Stuxnet"），且 alignment 范式从"防止做坏"升级到"主动做好"。</p>
+  </div>
+  <div class="module-meta">
+    <span>👤 Jack Clark · Anthropic 联合创始人</span>
+    <span>📧 Newsletter</span>
+    <span class="vintage">⏱ 4 天前</span>
+    <span>📖 8 分钟</span>
+  </div>
+  <div class="module-body">
+
+    <h3>🔍 这条在讲什么</h3>
+    <p>Jack Clark（Anthropic 政策灵魂人物之一）457 期周报，三件大事：</p>
+
+    <!-- 风险层 SVG 图 -->
+    <div class="diagram">
+      <svg viewBox="0 0 600 280" width="100%" height="280" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#2d4a3e"/>
+          </marker>
+        </defs>
+        <!-- 4 层堆叠 -->
+        <rect x="100" y="20" width="400" height="50" class="box box-accent" rx="6"/>
+        <text x="300" y="50" text-anchor="middle" class="label-text label-bold">🛡️ 策略层 · Positive Alignment（积极对齐）</text>
+
+        <rect x="100" y="80" width="400" height="50" class="box" rx="6"/>
+        <text x="300" y="110" text-anchor="middle" class="label-text label-bold">🚀 部署层 · 用户使用、API 调用</text>
+
+        <rect x="100" y="140" width="400" height="50" class="box" rx="6"/>
+        <text x="300" y="170" text-anchor="middle" class="label-text label-bold">⚡ Inference 层 · 模型推理</text>
+
+        <rect x="100" y="200" width="400" height="50" class="box box-accent" rx="6"/>
+        <text x="300" y="230" text-anchor="middle" class="label-text label-bold">🔬 训练层 · AI Stuxnet 攻击面</text>
+
+        <!-- 箭头表示风险传递 -->
+        <text x="40" y="245" class="label-text" fill="#c0392b" font-size="11">攻击</text>
+        <text x="40" y="35" class="label-text" fill="#c0392b" font-size="11">防御</text>
+        <line x1="60" y1="240" x2="60" y2="30" class="arrow" stroke-dasharray="4,4"/>
+      </svg>
+      <div class="diagram-caption">AI 风险地图 · 从训练管道到策略层，每一层都是工程面</div>
+    </div>
+
+    <ol>
+      <li><strong>AI Stuxnet（隐喻命名）</strong>：用软件破坏 AI 训练里的精确数值计算，让模型"看似正常"地学到错的东西 —— 类似 2010 年 Stuxnet 病毒精确攻击伊朗核设施离心机</li>
+      <li><strong>Cursed Muon Optimizer</strong>：优化器层面发现新漏洞，可通过精心构造的训练样本污染模型</li>
+      <li><strong>Positive Alignment</strong>：超越传统 AI <span class="term" data-tip="safety = 让 AI 不做坏事；alignment = 让 AI 价值观和人类一致">safety</span>（防止 AI 做坏）的范式 → "让 AI 主动做好"</li>
+    </ol>
+
+    <h3>💎 价值点</h3>
+    <p>这是 <strong>Anthropic 战略灵魂的"系统级 AI 风险地图"</strong>。让你看到：</p>
+    <ul>
+      <li>AI <strong>基础设施层</strong>（训练 pipeline、optimizer）也是攻击面，不只是 prompt injection</li>
+      <li>Alignment 从被动转向主动 = AI 工程范式升级</li>
+      <li>政策视角 vs 工程视角的桥梁</li>
+    </ul>
+
+    <h3>🧠 引发的思考（结合你的处境）</h3>
+    <ol>
+      <li>你做 data-bp 是 enterprise data project，<strong>业务数据本身就是攻击面</strong> —— "AI Stuxnet" 思路放到企业场景：恶意构造的业务 metric 会让 AI 知识页学错吗？</li>
+      <li><strong>Positive vs Safety</strong> = AI 工程"防御 vs 价值创造"范式分野。你做 AI 落地是哪个范式？</li>
+      <li><strong>"前 10%" 必读 Jack Clark</strong>：Import AI 是 AI 圈最重要的 newsletter 之一，Anthropic 联创视角，每周一期</li>
+    </ol>
+
+    <div class="think-box">
+      <p>读这一期时不要只看技术细节，重点理解 <strong>Jack 怎么把 AI 风险按「训练 / inference / 部署 / 策略」分层</strong>。这种**系统级思维**才是顶级 AI builder 区别于普通工程师的核心。</p>
+    </div>
+
+    <details class="quiz">
+      <summary>测试理解</summary>
+      <p class="quiz-question">你 data-bp 项目里"业务知识页生成"的攻击面，**按训练/inference/部署/策略 4 层分别是什么**？</p>
+      <div class="quiz-answer">
+        <p>参考答案（你的实际项目可能不同）：</p>
+        <ul>
+          <li><strong>训练层</strong>：knowledge base 历史数据污染（错误业务定义被模型"学"进去）</li>
+          <li><strong>Inference 层</strong>：prompt injection（业务方在 PRD 里塞恶意指令）</li>
+          <li><strong>部署层</strong>：知识页生成后被错误使用（业务决策依赖错的知识）</li>
+          <li><strong>策略层</strong>：你团队对"什么算正确的知识"没共识 → AI 学到的是混乱的</li>
+        </ul>
+        <p><strong>启发</strong>：写一个 <code>concepts/ai-attack-surface.md</code> 把这 4 层映射到 data-bp 具体文件 / 代码位置。</p>
+      </div>
+    </details>
+  </div>
+  <div class="module-links">
+    🔗 <a href="https://importai.substack.com/p/import-ai-457-ai-stuxnet-cursed-muon">Import AI 457 全文</a>
+    <div class="module-value">Value 9.0 · Primary 10 · Influence 9 · Recency 8</div>
+  </div>
+</section>
+
+<!-- ============ T1-#4 Anthropic Managed Agents (Evergreen) ============ -->
+<section class="module" id="t1-4">
+  <div class="module-hero">
+    <span class="num-tag">⭐ EVERGREEN 1/12 · 44 天前</span>
+    <h2>Anthropic: 把 Agent 的"大脑"和"双手"解耦</h2>
+    <p class="core-point">brain (模型 + harness) 与 hands (sandbox + tools) 通过协议解耦，独立失败恢复、独立扩展 —— 这是 Claude Code / Skills 系统的设计哲学。</p>
+  </div>
+  <div class="module-meta">
+    <span>👤 Anthropic Engineering</span>
+    <span>📄 Engineering Blog</span>
+    <span class="vintage">⏱ 44 天前</span>
+    <span>⭐ Evergreen 白名单</span>
+    <span>📖 10 分钟</span>
+  </div>
+  <div class="module-body">
+
+    <h3>🔍 核心抽象：Brain ↔ Hands</h3>
+
+    <!-- Brain/Hands SVG 流程图 -->
+    <div class="diagram">
+      <svg viewBox="0 0 640 280" width="100%" height="280" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <marker id="arrowhead2" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0, 10 3.5, 0 7" fill="#2d4a3e"/>
+          </marker>
+        </defs>
+
+        <!-- Brain 区 -->
+        <rect x="40" y="40" width="220" height="200" class="box" fill="#faf6f0" stroke="#3a6b8c" stroke-width="3" rx="12"/>
+        <text x="150" y="70" text-anchor="middle" class="label-text label-bold" font-size="18" fill="#3a6b8c">🧠 BRAIN</text>
+        <text x="150" y="92" text-anchor="middle" class="label-text" font-size="11">大脑 = 决策</text>
+
+        <rect x="60" y="110" width="180" height="32" fill="#3a6b8c" rx="4"/>
+        <text x="150" y="130" text-anchor="middle" class="label-text label-white" font-size="12">Model (Claude)</text>
+
+        <rect x="60" y="150" width="180" height="32" fill="#5b7b6a" rx="4"/>
+        <text x="150" y="170" text-anchor="middle" class="label-text label-white" font-size="12">Harness (编排逻辑)</text>
+
+        <text x="150" y="210" text-anchor="middle" class="label-text" font-size="10" fill="#666">推理 + 决定下一步</text>
+        <text x="150" y="225" text-anchor="middle" class="label-text" font-size="10" fill="#666">能独立失败 / 升级</text>
+
+        <!-- 双向箭头 -->
+        <line x1="265" y1="140" x2="375" y2="140" class="arrow" stroke="#2d4a3e" marker-end="url(#arrowhead2)"/>
+        <line x1="375" y1="160" x2="265" y2="160" class="arrow" stroke="#2d4a3e" marker-end="url(#arrowhead2)"/>
+        <text x="320" y="130" text-anchor="middle" class="label-text" font-size="11" font-weight="700">结构化协议</text>
+        <text x="320" y="180" text-anchor="middle" class="label-text" font-size="10" fill="#666">(类似 MCP)</text>
+
+        <!-- Hands 区 -->
+        <rect x="380" y="40" width="220" height="200" class="box" fill="#faecec" stroke="#c0392b" stroke-width="3" rx="12"/>
+        <text x="490" y="70" text-anchor="middle" class="label-text label-bold" font-size="18" fill="#c0392b">✋ HANDS</text>
+        <text x="490" y="92" text-anchor="middle" class="label-text" font-size="11">双手 = 执行</text>
+
+        <rect x="400" y="110" width="180" height="32" fill="#c0392b" rx="4"/>
+        <text x="490" y="130" text-anchor="middle" class="label-text label-white" font-size="12">Sandbox (隔离环境)</text>
+
+        <rect x="400" y="150" width="180" height="32" fill="#d4a574" rx="4"/>
+        <text x="490" y="170" text-anchor="middle" class="label-text label-white" font-size="12">Tools (执行器)</text>
+
+        <text x="490" y="210" text-anchor="middle" class="label-text" font-size="10" fill="#666">实际跑代码 / 调 API</text>
+        <text x="490" y="225" text-anchor="middle" class="label-text" font-size="10" fill="#666">凭证隔离 · 可独立扩</text>
+      </svg>
+      <div class="diagram-caption">Brain / Hands 解耦 · 通过协议通信 · 两边可独立失败、独立扩展</div>
+    </div>
+
+    <h3>🔧 6 个工程问题（按 Anthropic 处理顺序）</h3>
+    <ol>
+      <li><span class="term" data-tip="harness = 包裹模型的协调代码，决定模型何时调工具、如何处理工具结果">Harness</span> 假设会过时：模型变强后老 harness 反而成瓶颈 → 抽象层要前瞻设计</li>
+      <li><strong>避免容器变"宠物"</strong>：单容器全栈耦合 → 出问题不知道是模型 bug 还是工具 bug</li>
+      <li><strong>凭证与代码隔离</strong>：sandbox 里不能有 API key，模型生成的代码可能误用</li>
+      <li><strong>长任务上下文外移</strong>：session 日志不能塞 context window，必须有外部存储</li>
+      <li><strong>多 brain 多 hands</strong>：未来一个用户同时跑多个 Claude instance</li>
+      <li><strong>TTFT 优化</strong>：首个 token 时间（Time To First Token）是 UX 核心</li>
+    </ol>
+
+    <h3>💎 价值点</h3>
+    <p>这是当前 <strong>AI agent 工程的 SOTA 设计</strong> —— 而且是 <strong>Anthropic 自家 Claude Code / Skills 系统的灵魂</strong>。</p>
+
+    <div class="value-box">
+      <div class="vlabel">⚡ 你的认知融合机会</div>
+      你 vault <code>concepts/tool-stack-layering.md</code> 5 层模型（API / CLI / MCP / Skill / Plugin）<strong>+</strong> Anthropic brain/hands 二分法 <strong>=</strong> 完整 agent 工程认知。两个抽象组合形成的二维图，就是 <code>agentic-systems-theory</code> 从 low → medium → high 需要的核心 source。
+    </div>
+
+    <h3>🧠 引发的思考</h3>
+    <ol>
+      <li><strong>brain/hands 映射到 data-bp</strong>：业务知识页生成 = brain 侧（决策）；数据接入、SQL 执行 = hands 侧（机械动作）。中间通过什么协议解耦？这就是你应重点设计的</li>
+      <li><strong>你 fork 的 llm-wiki-compiler 也是 long-running agent app</strong>：hook 是 brain 还是 hands？</li>
+      <li><strong>副业方向</strong>：基于 brain/hands 抽象做"Agent 部署管理工具"是空白市场（参考 Modal、Replicate）</li>
+    </ol>
+
+    <div class="think-box">
+      <p>读时<strong>实时把每一节映射到一个你接触过的 AI 工具</strong>（Claude Code、weread-skills、llm-wiki-compiler）。如果某节映射不出来，<strong>那就是你的认知盲区</strong> —— 重点啃这一节。</p>
+    </div>
+
+    <details class="quiz">
+      <summary>测试理解</summary>
+      <p class="quiz-question">你 fork 的 llm-wiki-compiler 里，**hook 系统**是 brain 还是 hands？为什么？你做的 3 个 bug 修复涉及 brain 还是 hands？</p>
+      <div class="quiz-answer">
+        <p>参考答案：</p>
+        <ul>
+          <li><strong>hook 系统</strong>：是 hands 侧（具体执行：检测文件变化 → 触发 compile）</li>
+          <li><strong>但 hook 的"决定是否报 stale"</strong>：是 brain 侧（推理"这个状态算不算 stale"）</li>
+          <li><strong>你 3 个 bug</strong>：
+            <ul>
+              <li>hook stale 修复：hands 层（时间戳计算 bug）</li>
+              <li>/distill 命令：brain 层（决定"对话要不要 distill"）</li>
+              <li>路径 docs：纯文档（不在 brain/hands 框架）</li>
+            </ul>
+          </li>
+        </ul>
+        <p><strong>启发</strong>：vault 里写 <code>concepts/brain-hands-mapping.md</code>，把你接触的所有 AI 工具都映射一遍。</p>
+      </div>
+    </details>
+  </div>
+  <div class="module-links">
+    🔗 <a href="https://www.anthropic.com/engineering/managed-agents">Anthropic 原文</a>
+    <div class="module-value">Value 10.0 · Evergreen 例外 · 1/12 已推</div>
+  </div>
+</section>
+
+<!-- ============ T1-#5 Simon Willison ============ -->
+<section class="module" id="t1-5">
+  <div class="module-hero">
+    <span class="num-tag">#5 · 8 天前</span>
+    <h2>Simon Willison: 编程语言变得"可互换"</h2>
+    <p class="core-point">AI coding agents 让跨语言重写一个项目从 5+ 年精通门槛降到 1-2 小时 —— 技术决策权重下降，业务/架构决策权重上升。</p>
+  </div>
+  <div class="module-meta">
+    <span>👤 Simon Willison · Django 联合创始人</span>
+    <span>📄 个人博客</span>
+    <span class="vintage">⏱ 8 天前</span>
+    <span>📖 3 分钟</span>
+  </div>
+  <div class="module-body">
+
+    <h3>🔍 这条在讲什么</h3>
+
+    <div class="compare-cards">
+      <div class="compare-card expected">
+        <div class="label">📜 过去</div>
+        <div class="content">
+          学一门语言到精通 = 5+ 年<br>
+          → "Java 12 年" 是稀缺资源<br>
+          → 语言锁定（lock-in）严重
+        </div>
+      </div>
+      <div class="compare-card actual">
+        <div class="label">⚡ 现在</div>
+        <div class="content">
+          AI agent 跨语言重写一个项目 = 1-2 小时<br>
+          → 编程语言成"可互换"（fungible）<br>
+          → 业务/架构决策成核心
+        </div>
+      </div>
+    </div>
+
+    <h3>💎 价值点</h3>
+    <p>Simon Willison 是 <strong>AI 应用领域最权威的个人观察者</strong>。他的判断：</p>
+    <ul>
+      <li>极度务实（不炒作）</li>
+      <li>一手实验（他自己每天用 AI 写代码）</li>
+      <li>长时间一致（2022 年就在写 LLM 应用观察）</li>
+    </ul>
+    <p>"语言可互换"如果成立，对软件工程职业路径的影响是<strong>核心级</strong>。</p>
+
+    <h3>🧠 引发的思考</h3>
+    <ol>
+      <li><strong>你是大数据开发工程师</strong>，技能栈 Spark / Flink / Python / Scala / SQL。哪些是"语言锁定" 哪些是"工具锁定"？工具锁定不容易被 AI 替换</li>
+      <li><strong>副业方向反思</strong>：做 AI 副业，专精一门语言 vs 理解多语言 + 业务？Simon 暗示后者</li>
+      <li><strong>"前 10%" 的 AI 时代</strong> = 不是某门语言的高手，是<strong>能用 AI agents 跨多语言切换 + 设计跨栈系统</strong>的人</li>
+    </ol>
+
+    <div class="think-box">
+      <p>读完问自己「<strong>如果我今天的技能让 AI 来做，我能多快做完同样的工作？</strong>」这个比例 = 你被 AI 替代的速度。然后问「<strong>我应该升级到 AI 做不了的什么层级？</strong>」</p>
+    </div>
+
+    <details class="quiz">
+      <summary>测试理解</summary>
+      <p class="quiz-question">把你工作里 5 个常见任务，按"AI 能替代的程度"打分（1=不能替代 / 5=完全可替代），并选出 1 个 AI 做不了的事，**作为你下半年要投入的方向**。</p>
+      <div class="quiz-answer">
+        <p>参考思路（大数据工程师）：</p>
+        <ul>
+          <li>写 Spark/Flink 作业 = <strong>4</strong>（AI 现在写得很好）</li>
+          <li>SQL 优化 = <strong>3-4</strong>（中等复杂度 AI 行）</li>
+          <li>调度 + 监控 = <strong>3</strong>（工具锁定，半 AI 替代）</li>
+          <li>跨团队需求沟通 = <strong>1</strong>（人际 + 业务深度）</li>
+          <li>判断"什么数据值得收集" = <strong>1</strong>（业务直觉 + 战略）</li>
+        </ul>
+        <p><strong>AI 做不了的事</strong>：跨团队对齐 + 数据战略决策 → 这是你应该深耕的方向。<strong>启发</strong>：副业方向可以选"教大数据团队如何用 AI" 而不是"写更多 ETL"。</p>
+      </div>
+    </details>
+  </div>
+  <div class="module-links">
+    🔗 <a href="https://simonwillison.net/2026/May/14/not-so-locked-in/">Simon Willison 全文</a>
+    <div class="module-value">Value 8.0 · Primary 10 · Influence 8 · Recency 6</div>
+  </div>
+</section>
+
+<!-- ============ T1-#6 Vibe Physics ============ -->
+<section class="module" id="t1-6">
+  <div class="module-hero">
+    <span class="num-tag">#6 · 17 天前</span>
+    <h2>Vibe Physics: OpenAI 物理学家用 GPT-5.5 做研究</h2>
+    <p class="core-point">物理研究是 AI 最难触达的领域 —— 看物理学家怎么用 AI，能告诉你 AI 落地的认知边界。</p>
+  </div>
+  <div class="module-meta">
+    <span>👤 Latent Space podcast (swyx) w/ Alex Lupsasca</span>
+    <span>🎧 Podcast</span>
+    <span class="vintage">⏱ 17 天前</span>
+    <span>⏰ 91 min → 听 15 min 段</span>
+  </div>
+  <div class="module-body">
+
+    <h3>🔍 这条在讲什么</h3>
+    <p>OpenAI 物理学家 Alex Lupsasca 上 Latent Space，分享他怎么用 GPT-5.5 做<strong>真实物理研究</strong>（不是科普，是发 paper 级别的工作）：</p>
+    <ul>
+      <li><strong>"Vibe physics"</strong>：用 LLM 当"研究协作者"做物理探索的范式</li>
+      <li>LLM <span class="term" data-tip="fails gracefully = 不懂时主动 admit，不胡编。这是 AI 应用工程的核心质量">fails gracefully</span> 的具体场景（什么时候它知道自己不懂）</li>
+      <li>怎么把 LLM 集成进物理学家工作流（不是替代，是增强）</li>
+      <li>黑洞物理等高度专业领域，GPT-5.5 的真实表现边界</li>
+    </ul>
+
+    <h3>💎 价值点</h3>
+    <p><strong>跨领域的「AI 应用极限」案例</strong>。物理研究是 AI 最难触达的领域之一（强数学 + 强直觉），看一线物理学家怎么用 AI = 你能学到 AI 落地应用的认知边界。</p>
+
+    <div class="value-box">
+      <div class="vlabel">⚡ 为什么对你有用</div>
+      <ul style="margin-left:16px;">
+        <li>物理研究比 data-bp 业务<strong>更难</strong> → 如果 AI 能在物理研究里有用，data-bp 一定能</li>
+        <li>"AI fails gracefully" 模式可直接 transfer 到企业场景（让 AI 在不懂的地方主动 admit）</li>
+      </ul>
+    </div>
+
+    <h3>🧠 引发的思考</h3>
+    <ol>
+      <li><strong>你想做的 AI 副业（博主/小程序/skill）</strong> —— 物理学家怎么把 AI 集成进高度专业的工作流？这种 pattern 能复制到任意垂直领域</li>
+      <li><strong>AI fails gracefully 的工程化实现</strong>：这是 AI 应用工程的隐藏护城河。Karpathy 一直强调，Anthropic Constitutional AI 也是这方向</li>
+      <li><strong>"前 10%" 的 AI 应用者</strong> = 不是"什么都让 AI 做"，是"知道 AI 在哪能做、哪不能做、并把两边对接好"</li>
+    </ol>
+
+    <div class="think-box">
+      <p>不要听全集（91 分钟太长）。<strong>只听 chapter "How I use GPT-5.5 in research" 那段 15 分钟</strong>。听时记一件事：「<strong>Alex 让 AI 做什么、不让 AI 做什么，他是怎么决定的？</strong>」这决策框架你能 transfer 到 data-bp。</p>
+    </div>
+
+    <details class="quiz">
+      <summary>测试理解</summary>
+      <p class="quiz-question">在你 data-bp 项目里，哪 3 个任务你**绝对不能让 AI 做**？哪 3 个你**完全可以放手让 AI 做**？为什么？</p>
+      <div class="quiz-answer">
+        <p>参考思路：</p>
+        <ul>
+          <li><strong>不能让 AI 做</strong>：
+            <ol>
+              <li>定义"什么是正确的业务知识"（涉及组织共识）</li>
+              <li>判断业务 metric 的伦理边界</li>
+              <li>对外公开知识页的最终审核</li>
+            </ol>
+          </li>
+          <li><strong>放手让 AI 做</strong>：
+            <ol>
+              <li>从业务文档抽取实体（schema 抽取）</li>
+              <li>按模板填充知识页内容</li>
+              <li>SQL 查询的初稿生成</li>
+            </ol>
+          </li>
+        </ul>
+        <p><strong>启发</strong>：这个清单写进 vault 的 <code>topics/agentic-systems-theory.md</code>，是"AI 应用边界"的一手判断。</p>
+      </div>
+    </details>
+  </div>
+  <div class="module-links">
+    🔗 <a href="https://www.latent.space/p/vibe-physics">Latent Space 节目页</a>
+    <div class="module-value">Value 8.1 · Primary 9 · Influence 9 · Recency 6</div>
+  </div>
+</section>
+
+<!-- ════════════ TIER 2 ════════════ -->
+<div class="section-divider t2" id="t2">
+  <span class="tier-badge">TIER 2</span>
+  <h2>值得看</h2>
+  <span class="meta-right">5 条 · 估时 10 分钟</span>
+</div>
+
+<div class="t2-card">
+  <h3>Swyx: localfirst stack 已经赢了</h3>
+  <div class="meta">Swyx · Latent Space 主持 + ai.engineer 创始人 · 1 天前</div>
+  <p class="summary">他认为 localfirst（数据存本地、同步到云端）架构在 web app 领域已赢得范式之争。要"快速构建 fast app"，这是当前最优选。</p>
+  <div class="value">
+    <strong>价值点</strong>：localfirst = 离线优先 + 同步保底，UX 比纯云端更好。<br>
+    <strong>💭 启发</strong>：你做 AI web/小程序副业 → localfirst 是 2026 默认架构。研究 Linear、Figma 怎么实现的。
+  </div>
+  <a href="https://x.com/swyx/status/2057576893621150020">https://x.com/swyx/status/2057576893621150020</a>
+</div>
+
+<div class="t2-card">
+  <h3>Amjad Masad (Replit CEO): 客户不应被迫和销售对话</h3>
+  <div class="meta">Replit CEO · 在线 IDE + AI coding · 1 天前</div>
+  <p class="summary">批评 SaaS "必须先和销售聊才能买" 模式。Replit 反其道：self-serve 100% 顺畅，客户想聊销售时再聊（增值），不想就不聊。</p>
+  <div class="value">
+    <strong>价值点</strong>：减少购买 friction = AI 副业产品的核心竞争力。<br>
+    <strong>💭 启发</strong>：做 AI 副业 → 让用户自己买，不要拦着。这是 Indie Fox / yihui_indie 成功的核心特征。
+  </div>
+  <a href="https://x.com/amasad/status/2057504360217891018">https://x.com/amasad/status/2057504360217891018</a>
+</div>
+
+<div class="t2-card">
+  <h3>Aditya Agarwal: BigCo vs Pre-Series-B 的 4 个判断</h3>
+  <div class="meta">GP @SouthParkCommons · 前 Dropbox VP · 1 天前</div>
+  <p class="summary">工程师在"Series-B 前公司"和"BigCo/BigLab"之间犹豫 → 他不是创业者。给出 4 个判断小公司适合谁的标准。</p>
+  <div class="value">
+    <strong>价值点</strong>：帮你 calibrate 自己的 risk appetite。<br>
+    <strong>💭 启发</strong>：你想做 AI 副业 = 已有"早期创业"倾向。这条帮你判断 —— 真想做副业，还是 BigCo 焦虑的发泄？
+  </div>
+  <a href="https://x.com/adityaag/status/2057502381038846306">https://x.com/adityaag/status/2057502381038846306</a>
+</div>
+
+<div class="t2-card">
+  <h3>Josh Woodward (Google VP): Neural Expressive Design</h3>
+  <div class="meta">VP @Google @GoogleLabs @GeminiApp · 1 天前</div>
+  <p class="summary">Google IO 2026 后 GoogleLabs 推出 "Neural Expressive" design system 上 iOS / Android / Web —— AI native UI 新视觉语言（让 AI 感觉"活的"而非冰冷工具）。</p>
+  <div class="value">
+    <strong>价值点</strong>：AI UI 设计是新差异化战场。<br>
+    <strong>💭 启发</strong>：做 AI 应用副业，UI 设计语言可以差异化。Claude.ai、ChatGPT、Gemini 都在卷"AI 感觉"。
+  </div>
+  <a href="https://x.com/joshwoodward/status/2057559267952214073">https://x.com/joshwoodward/status/2057559267952214073</a>
+</div>
+
+<div class="t2-card">
+  <h3>⏳ Karpathy: How I use LLMs (历史 evergreen · 15 个月前)</h3>
+  <div class="meta">Andrej Karpathy · ex-Tesla/OpenAI · 现 Eureka Labs · <strong>2025-02-27 发布，距今 15 个月</strong></div>
+  <p class="summary">Karpathy 个人 LLM 工作流大全。2 小时把他真实使用 LLM 的所有动作演示一遍。<strong>虽然 15 个月前，但核心方法论 evergreen</strong>（5/18 你刚读过他相关 gist）。</p>
+  <div class="value">
+    <strong>价值点</strong>：方法论级 evergreen，不是当下热点，但你 vault <code>topics/claude-code</code> 仍能从这借鉴。<br>
+    <strong>💭 启发</strong>：<strong>重点看 "Tools" 和 "Context" chapter</strong>（不要从头看）—— AI 应用者 vs AI 使用者的分水岭。
+  </div>
+  <a href="https://www.youtube.com/watch?v=EWvNQjAaOHw">https://www.youtube.com/watch?v=EWvNQjAaOHw</a>
+</div>
+
+<!-- ════════════ TIER 3 ════════════ -->
+<div class="section-divider t3" id="t3">
+  <span class="tier-badge">TIER 3</span>
+  <h2>背景信号</h2>
+  <span class="meta-right">5 条 · 知道发生了就够</span>
+</div>
+
+<div class="t3-list">
+  <div class="t3-item">
+    <h4>Peter Yang: Practical AI tutorials 系列</h4>
+    <p class="summary">他持续输出 AI 教程，针对非技术读者解释 AI 工程概念。</p>
+    <p class="value-inline">值得知道有这个资源，做 AI 教学博主时可对标</p>
+    <a href="https://x.com/petergyang">https://x.com/petergyang</a>
+  </div>
+
+  <div class="t3-item">
+    <h4>Cat Wu (Anthropic): Claude 内部工程文化</h4>
+    <p class="summary">Anthropic 员工 Cat Wu 分享 Claude 产品团队的工作方式。</p>
+    <p class="value-inline">了解顶级 AI 实验室文化 —— 你想成为前 10% 的间接 signal</p>
+    <a href="https://x.com/_catwu">https://x.com/_catwu</a>
+  </div>
+
+  <div class="t3-item">
+    <h4>Ryo Lu (Cursor): UI 设计微调</h4>
+    <p class="summary">Cursor 设计师 Ryo Lu 分享他对 AI IDE UI 的细节决策。</p>
+    <p class="value-inline">做 AI 应用 UI 时的参考 —— 细节决定差异化</p>
+    <a href="https://x.com/ryolu_">https://x.com/ryolu_</a>
+  </div>
+
+  <div class="t3-item">
+    <h4>Google Labs: IO 2026 后多产品发布</h4>
+    <p class="summary">GoogleLabs IO 之后多条产品发布推文（已被 T2-Josh Woodward 那条 cover）。</p>
+    <p class="value-inline">Google AI 产品矩阵动向 —— 副业方向可对标</p>
+    <a href="https://x.com/GoogleLabs">https://x.com/GoogleLabs</a>
+  </div>
+
+  <div class="t3-item">
+    <h4>Matt Turck: MAD Podcast 新一集预告</h4>
+    <p class="summary">Matt Turck 预告 MAD Podcast 新一集（具体内容等播客发了再深入）。</p>
+    <p class="value-inline">MAD Podcast 是 AI 圈顶级播客之一，先做 awareness</p>
+    <a href="https://x.com/mattturck">https://x.com/mattturck</a>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <p>📡 信源全集 92 个 · 🤖 Value = Primary × 0.3 + Influence × 0.4 + Recency × 0.3</p>
+  <p style="margin-top:8px;">⭐ Evergreen rotation 本周: #1/12 = Anthropic Scaling Managed Agents</p>
+  <p style="margin-top:8px;">📁 完整 markdown 版: <code>$VAULT/01-Sources/reading-log/2026-05-22.md</code></p>
+  <p style="margin-top:16px;">— Generated by <a href="https://github.com/wzm000001/personal-feed-system">personal-feed-system v6</a></p>
+</div>
+
+</main>
+</div>
+</body>
+</html>
