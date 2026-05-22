@@ -1,202 +1,272 @@
 ---
-purpose: /feed 命令的订阅清单（v3 · focus AI + Zara优先 + 双语）
+purpose: v4 信源全集（AI 导师持有，用户不改）
 last_updated: 2026-05-22
-status: living document
-focus: AI builders & engineering（非 AI 主题已删除）
+status: AI 导师 own，用户只看不改
+focus: AI · 英文为主 · 中文 28 个 KOL 补充
+total_sources: 92
+delivery: Discord webhook（每天 8 AM）+ vault 存档
 ---
 
-# Reading Feeds · 信源池 v3
+# Reading Feeds · v4 信源全集
 
-**给 `/feed` 命令读的订阅清单。** focus AI，Zara 名单 ⭐⭐⭐ 最高优先，本地为辅。
+**给 daily-digest 命令读的信源池。** 92 个源分 5 个 Tier，价值打分 3 维后输出 Tier 1/2/3。
+
+**用户不需要改这个文件** —— AI 导师 own 它。用户的工作是消费 + 反馈"今天推得好不好"，AI 导师据此迭代。
 
 ---
 
-## ⭐⭐⭐ 优先 1：Zara 中心化 Feed（每天自动更新）
+## ⭐⭐⭐ Tier S: Zara 超核心（33 源 · 不动）
 
-**消费路径**：直接读本地文件，不用抓
-```
-~/.claude/skills/follow-builders/feed-x.json          # 25 个 builder 最近 24h 推文
-~/.claude/skills/follow-builders/feed-podcasts.json   # 6 个播客最新集
-~/.claude/skills/follow-builders/feed-blogs.json      # 2 个 blog 最新文章
-```
+直接消费 `~/.claude/skills/follow-builders/feed-x.json` 等本地缓存。
 
-**为什么最高优**：
-- Zara 团队精选 25 个 AI builder（不是网红是真造产品的人）
-- 中心化抓取（你电脑不用做事，每天 07:32 自动更新）
-- 一手信源（builder 自己发的推文 vs 媒体转述）
+### 25 个 AI Builders（X / Twitter）
+Karpathy / Swyx / Josh Woodward / Kevin Weil / Peter Yang / Nan Yu / Madhu Guru / Amanda Askell / Cat Wu / Thariq / Google Labs / Amjad Masad / Guillermo Rauch / Alex Albert / Aaron Levie / Ryo Lu / Garry Tan / Matt Turck / Zara Zhang / Nikunj Kothari / Peter Steinberger / Dan Shipper / Aditya Agarwal / Sam Altman / Claude
 
-**25 个 AI Builders**（来自 Zara 名单）：
+### 6 顶级播客（YouTube channel）
+- Latent Space `UCxBcwypKK-W3GHd_RZ9FZrQ`
+- Training Data (Sequoia) `playlist=PLOhHNjZItNnMm5tdW61JpnyxeYH5NDDx8`
+- No Priors `UCSI7h9hydQ40K5MJHnCrQvw`
+- Unsupervised Learning `UCUl-s_Vp-Kkk_XVyDylNwLA`
+- MAD Podcast `UCQID78IY6EOojr5RUdD47MQ`
+- AI & I `UC5AxZxJNdRleW0gl2S9yKwQ`
 
-| 类别 | 人物 |
+### 2 官方 Blog
+- Anthropic Engineering
+- Claude Blog
+
+---
+
+## ⭐⭐ Tier A: 英文个人博客 + Newsletter（17 源）
+
+### 9 个人博客（侧重英文，AI 工程顶流）
+| 博客 | RSS | 备注 |
+|---|---|---|
+| Simon Willison | `https://simonwillison.net/atom/everything/` | 每日更新 #must-read |
+| Lilian Weng | `https://lilianweng.github.io/index.xml` | 深度 evergreen 一手 #must-read |
+| Eugene Yan | `https://eugeneyan.com/rss/` | Amazon staff, applied ML/evals |
+| Hamel Husain | `https://hamel.dev/index.xml` | applied ML, evals 顶级 |
+| Chip Huyen | (无 RSS，WebFetch) | ML systems 架构 |
+| Sebastian Raschka | `https://magazine.sebastianraschka.com/feed` | LLM internals 教学 |
+| Jay Alammar | `https://jalammar.github.io/feed.xml` | LLM visualization 一手 |
+| Karpathy GitHub gist | `https://gist.github.com/karpathy.atom` | 个人代码 + 思考 |
+| Andrew Ng (deeplearning.ai) | `https://www.deeplearning.ai/the-batch/feed/` | The Batch newsletter |
+
+### 8 Newsletter (Substack 等)
+| Newsletter | RSS | 备注 |
+|---|---|---|
+| Import AI | `https://importai.substack.com/feed` | Jack Clark **Anthropic 联创** #must-read |
+| Interconnects | `https://www.interconnects.ai/feed` | Nathan Lambert · RLHF 顶尖 |
+| One Useful Thing | `https://www.oneusefulthing.org/feed` | Ethan Mollick · applied AI |
+| Stratechery | `https://stratechery.passport.online/feed/rss/Z3DG7Yx2crBcKKv2GpAVoH` | Ben Thompson · 战略层 |
+| Last Week in AI | `https://lastweekin.ai/feed` | 周度综合 |
+| The AI Daily Brief | `https://rss.beehiiv.com/feeds/zHQNXhJBOG.xml` | 日度新闻 |
+| Latent Space (newsletter) | `https://www.latent.space/feed` | swyx 写的版 |
+| Lenny's Newsletter | `https://www.lennysnewsletter.com/feed` | 产品 |
+
+---
+
+## ⭐⭐ Tier B: 中文 KOL（28 人）
+
+### B1. 工程实战派（7）
+| KOL | 平台 | 标识 |
+|---|---|---|
+| 宝玉 @dotey | X / 微博 | Prompt engineering 顶尖 |
+| 向阳乔木 @vista8 | X / 公众号 | AI 工具实操 |
+| 黄赟 @huangyun_122 | X / 小红书 | AI 小生意系列 |
+| 烟花老师 @teach_fireworks | X | AI 工作流 |
+| op7418 | X / 小红书 | AI 工具评测 |
+| yidabuilds | X | AI 独立开发实战 |
+| AI 进化论-花生 | 公众号 | 工程实战 |
+
+### B2. 产品创业派（5）
+| KOL | 平台 | 标识 |
+|---|---|---|
+| yihui_indie | X | AI 独立开发 + 创作者经济 |
+| Indie Fox | X | 出海 SaaS，年入 $100K |
+| 哥飞 (gefei55) | X | 独立开发 + 网站矩阵 |
+| 海拉鲁编程客 | X | AI 编程 + 独立开发 |
+| nopinduoduo | X | 推文→公众号 3 分钟工作流 |
+
+### B3. 资讯媒体派（6）
+| KOL | 平台 | 标识 |
+|---|---|---|
+| 量子位 | 公众号 / 网站 | AI 综合 |
+| 机器之心 | 公众号 / 网站 | AI 学术 + 产品 |
+| 极客公园 | 公众号 / 网站 | 科技 + AI |
+| 新智元 | 公众号 | AI 最新动态 |
+| 知危 Deep | 公众号 | AI 深度访谈 |
+| AI 寒武纪 | 公众号 | 最新动态 |
+
+### B4. 思想评论派（5）
+| KOL | 平台 | 标识 |
+|---|---|---|
+| orange.ai | X | AI 思想 + 产品判断 |
+| 卡兹克 | X / 公众号 | AI 评论 + 产品测评 |
+| 段小草 | X | AI 思想 |
+| 阿稳 | X | AI 创业洞察 |
+| Hito | X | AI 应用方向 |
+
+### B5. 大牛一线（5）
+| KOL | 平台 | 标识 |
+|---|---|---|
+| 李沐 (Mu Li) | B 站 / X | paper reading 中文最佳 |
+| 翁荔 Lilian Weng | X / 个人博客 | 前 OpenAI（也在英文博客 Tier A） |
+| 沈向洋 | X | 微软前 / AI 思想 + 战略 |
+| 谢赛宁 | X | NYU · 计算机视觉 + multimodal |
+| 吴恩达 Andrew Ng | X | deeplearning.ai · 应用 AI |
+
+---
+
+## ⭐ Tier C: 官方 Changelog + GitHub Release（19 源）
+
+### 11 官方页（侧重一手 changelog）
+| 源 | URL / 抓取方式 |
 |---|---|
-| 🧠 大研究员 | Karpathy / Amanda Askell（Anthropic）/ Sam Altman / Claude 官号 |
-| ⚙️ AI 工程顶级 | Swyx / Cat Wu（Anthropic）/ Alex Albert（Anthropic）/ Thariq |
-| 🏢 CEO/创始人 | Amjad Masad（Replit）/ Garry Tan（YC）/ Aaron Levie（Box）/ Dan Shipper（Every）/ Aditya Agarwal |
-| 📦 产品 | Josh Woodward（Google）/ Kevin Weil（OpenAI）/ Peter Yang / Nan Yu / Madhu Guru / Ryo Lu（Cursor）/ Peter Steinberger |
-| 💰 VC/战略 | Matt Turck / Zara Zhang / Nikunj Kothari / Guillermo Rauch（Vercel） |
-| 🏛️ 机构 | Google Labs |
+| Anthropic Engineering | https://www.anthropic.com/engineering (WebFetch) |
+| Anthropic Research | https://www.anthropic.com/research |
+| Anthropic News | https://www.anthropic.com/news |
+| Claude Blog | https://claude.com/blog |
+| Claude Code release notes | https://docs.claude.com/en/release-notes/claude-code |
+| Anthropic API changelog | https://docs.claude.com/en/api/changelog |
+| OpenAI Research | https://openai.com/research |
+| OpenAI Cookbook recent | https://github.com/openai/openai-cookbook/commits.atom |
+| DeepMind Blog | https://deepmind.google/discover/blog/ |
+| Hugging Face Daily Papers | https://huggingface.co/papers |
+| MCP Spec | https://modelcontextprotocol.io/ |
 
-**6 个顶级播客**（用 YouTube channel_id 拉 RSS）：
-
-| 播客 | 主持 | channel_id |
-|---|---|---|
-| [Latent Space](https://www.youtube.com/@LatentSpacePod) | Swyx | `UCxBcwypKK-W3GHd_RZ9FZrQ` |
-| [Training Data](https://www.youtube.com/playlist?list=PLOhHNjZItNnMm5tdW61JpnyxeYH5NDDx8) | Sequoia | playlist_id |
-| [No Priors](https://www.youtube.com/@NoPriorsPodcast) | Sarah Guo + Elad Gil | `UCSI7h9hydQ40K5MJHnCrQvw` |
-| [Unsupervised Learning](https://www.youtube.com/@RedpointAI) | Jacob Effron | `UCUl-s_Vp-Kkk_XVyDylNwLA` |
-| [The MAD Podcast](https://www.youtube.com/@DataDrivenNYC) | Matt Turck | `UCQID78IY6EOojr5RUdD47MQ` |
-| [AI & I](https://www.youtube.com/@AIandI) | Dan Shipper | `UC5AxZxJNdRleW0gl2S9yKwQ` |
-
-**2 个官方 blog**：
-- [Anthropic Engineering](https://www.anthropic.com/engineering) #must-read
-- [Claude Blog](https://claude.com/blog) #release #product
-
----
-
-## ⭐⭐ 优先 2：AI 工程评论博客（个人观点，Zara 未覆盖）
-
-每个源带 RSS URL，**curl 直接拉**。
-
-- [Simon Willison](https://simonwillison.net/) [rss](https://simonwillison.net/atom/everything/) #daily #must-read
-- [Lilian Weng](https://lilianweng.github.io/) [rss](https://lilianweng.github.io/index.xml) #deep #must-read
-- [Eugene Yan](https://eugeneyan.com/writing/) [rss](https://eugeneyan.com/rss/) #applied-ml #evals
-- [Hamel Husain](https://hamel.dev/) [rss](https://hamel.dev/index.xml) #applied-ml #evals
-- [Chip Huyen](https://huyenchip.com/blog/) #ml-systems
-- [Sebastian Raschka](https://magazine.sebastianraschka.com/) [rss](https://magazine.sebastianraschka.com/feed) #llm-internals
-- [Jay Alammar](https://jalammar.github.io/) #visualization
+### 8 GitHub Release
+| Repo | Atom URL |
+|---|---|
+| anthropics/claude-code | `https://github.com/anthropics/claude-code/releases.atom` |
+| anthropics/anthropic-cookbook | `https://github.com/anthropics/anthropic-cookbook/commits.atom` |
+| modelcontextprotocol/servers | `https://github.com/modelcontextprotocol/servers/commits.atom` |
+| modelcontextprotocol/python-sdk | `https://github.com/modelcontextprotocol/python-sdk/releases.atom` |
+| pydantic/pydantic-ai | `https://github.com/pydantic/pydantic-ai/releases.atom` |
+| vllm-project/vllm | `https://github.com/vllm-project/vllm/releases.atom` |
+| continuedev/continue | `https://github.com/continuedev/continue/releases.atom` |
+| microsoft/playwright-mcp | `https://github.com/microsoft/playwright-mcp/releases.atom` |
 
 ---
 
-## ⭐⭐ 优先 3：AI Newsletter
+## ⭐ Tier D: 视频 + 实时社区信号（11 源）
 
-- [Import AI](https://importai.substack.com/) [rss](https://importai.substack.com/feed) #anthropic #jack-clark #must-read
-- [Interconnects](https://www.interconnects.ai/) [rss](https://www.interconnects.ai/feed) #rlhf #nathan-lambert
-- [One Useful Thing](https://www.oneusefulthing.org/) [rss](https://www.oneusefulthing.org/feed) #applied #ethan-mollick
-- [The AI Daily Brief](https://aidailybrief.beehiiv.com/) [rss](https://rss.beehiiv.com/feeds/zHQNXhJBOG.xml) #daily-news
-- [Last Week in AI](https://lastweekin.ai/) [rss](https://lastweekin.ai/feed) #weekly-digest
+### 8 个 YouTube 频道（Zara 6 播客之外）
+| 频道 | channel_id |
+|---|---|
+| 3Blue1Brown | `UCYO_jab_esuFRV4b17AJtAw` |
+| Andrej Karpathy | `UCXUPKJO5MZQN11PqgIvyuvQ` |
+| Yannic Kilcher | `UCZHmQk67mSJgfCCTn7xBfew` |
+| Lex Fridman | `UCSHZKyawb77ixDdsGog4iWA` |
+| Dwarkesh Patel | `UCXl4i9dYBrFOabk0xGmbkRA` |
+| Two Minute Papers | (查) |
+| Fireship | `UCsBjURrPoezykLs9EqgamOA` |
+| AI Engineer (会议) | (查) |
 
----
+RSS 模板：`https://www.youtube.com/feeds/videos.xml?channel_id=UCxxx`
 
-## ⭐⭐ 优先 4：Agent / Skill / MCP 专题
+### 4 个 Bilibili UP（中文视频）
+| UP | mid |
+|---|---|
+| 李沐 (Mu Li) | 1567748478 |
+| 林亦LYi | 477689080 |
+| 影视飓风 | 946974 |
+| 何同学 | 163637592 |
 
-- [Anthropic: Building Effective Agents](https://www.anthropic.com/research/building-effective-agents) #must-read #agent-patterns
-- [Claude Code release notes](https://docs.claude.com/en/release-notes/claude-code) #fresh
-- [MCP Spec](https://modelcontextprotocol.io/) #protocol
-- [Anthropic Research](https://www.anthropic.com/research) #safety #alignment
-- [Anthropic News](https://www.anthropic.com/news) #release #model
+抓取：Claude in Chrome → `space.bilibili.com/<mid>/upload`
 
----
-
-## ⭐ 优先 5：YouTube 频道（补充 Zara 6 播客之外）
-
-| 频道 | channel_id | tag |
-|---|---|---|
-| [3Blue1Brown](https://www.youtube.com/@3blue1brown) | `UCYO_jab_esuFRV4b17AJtAw` | #math #visualization |
-| [Andrej Karpathy](https://www.youtube.com/@AndrejKarpathy) | `UCXUPKJO5MZQN11PqgIvyuvQ` | #llm-internals #must-watch |
-| [Yannic Kilcher](https://www.youtube.com/@YannicKilcher) | `UCZHmQk67mSJgfCCTn7xBfew` | #paper-reading |
-| [Lex Fridman](https://www.youtube.com/@lexfridman) | `UCSHZKyawb77ixDdsGog4iWA` | #long-interview |
-| [Dwarkesh Patel](https://www.youtube.com/@DwarkeshPatel) | `UCXl4i9dYBrFOabk0xGmbkRA` | #ai-research-interview |
-| [Two Minute Papers](https://www.youtube.com/@TwoMinutePapers) | — | #paper-tldr |
-| [AI Engineer](https://www.youtube.com/@aiDotEngineer) | — | #conference-talks |
-
-RSS URL 模板：`https://www.youtube.com/feeds/videos.xml?channel_id=UCxxx`
-
----
-
-## ⭐ 优先 6：GitHub Release / Changelog（工具栈感知）
-
-- [anthropics/claude-code](https://github.com/anthropics/claude-code) [atom](https://github.com/anthropics/claude-code/releases.atom) #must-watch
-- [anthropics/anthropic-cookbook](https://github.com/anthropics/anthropic-cookbook) [atom](https://github.com/anthropics/anthropic-cookbook/commits.atom)
-- [modelcontextprotocol/servers](https://github.com/modelcontextprotocol/servers) [atom](https://github.com/modelcontextprotocol/servers/commits.atom) #mcp
-- [modelcontextprotocol/python-sdk](https://github.com/modelcontextprotocol/python-sdk) [atom](https://github.com/modelcontextprotocol/python-sdk/releases.atom) #mcp
-- [microsoft/playwright-mcp](https://github.com/microsoft/playwright-mcp) [atom](https://github.com/microsoft/playwright-mcp/releases.atom) #browser
-- [pydantic/pydantic-ai](https://github.com/pydantic/pydantic-ai) [atom](https://github.com/pydantic/pydantic-ai/releases.atom) #agent-framework
-- [vllm-project/vllm](https://github.com/vllm-project/vllm) [atom](https://github.com/vllm-project/vllm/releases.atom) #inference
+### 3 个实时社区
+| 源 | RSS |
+|---|---|
+| HackerNews AI top | `https://hnrss.org/newest?q=AI+OR+LLM+OR+Claude+OR+Anthropic&points=50` |
+| r/LocalLLaMA | `https://www.reddit.com/r/LocalLLaMA/.rss` |
+| Show HN | `https://hnrss.org/show` |
 
 ---
 
-## ⭐ 优先 7：中文 AI 圈（用户偏好保留）
+## ⭐⭐⭐⭐ Evergreen 必读白名单（rotate 推送，每周 1 篇）
 
-- [向阳乔木 @vista8](https://yangchaomu.com/) #zh-ai #prompt
-- [宝玉 @dotey](https://baoyu.io/) [rss](https://baoyu.io/atom.xml) #zh-ai-prompt
-- [orange.ai](https://orange.ai/) #zh-ai
-- [量子位](https://www.qbitai.com/) #zh-news
-- [机器之心](https://www.jiqizhixin.com/) #zh-research-digest
-- 你 vault `topics/ai-industry-watch.md` 已跟踪的 30+ 中文 KOL → 自动 ingest
+绕过时效硬限制。8 篇核心 + 4 篇补充，推完一轮（约 3 月）后回到推完即停。
 
-### 📺 中文 Bilibili UP
+### 核心 8 篇
+1. Karpathy: [Software 3.0 talk](https://www.youtube.com/watch?v=LCEmiRjPEtQ)
+2. Karpathy: [Intro to LLMs 1hr talk](https://www.youtube.com/watch?v=zjkBMFhNj_g)
+3. Karpathy: [zero-to-hero series](https://www.youtube.com/playlist?list=PLAqhIrjkxbuWI23v9cThsA9GvCAUhRvKZ)
+4. Anthropic: [Building Effective Agents](https://www.anthropic.com/research/building-effective-agents)
+5. Lilian Weng: [LLM Powered Autonomous Agents](https://lilianweng.github.io/posts/2023-06-23-agent/)
+6. Anthropic: [Scaling Managed Agents](https://www.anthropic.com/engineering/managed-agents)
+7. Eugene Yan: [How to Work and Compound with AI](https://eugeneyan.com/writing/working-with-ai/)
+8. Karpathy gist: [https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f)
 
-| UP 主 | mid | tag |
-|---|---|---|
-| [李沐](https://space.bilibili.com/1567748478) | 1567748478 | #paper-reading #zh #must-watch |
-| [林亦LYi](https://space.bilibili.com/477689080) | 477689080 | #ai-application |
-| [何同学](https://space.bilibili.com/163637592) | 163637592 | #tech-product |
-| [影视飓风](https://space.bilibili.com/946974) | 946974 | #content-creation |
-
-### 📕 小红书（通过 redbook skill）
-
-- @黄赟 `huangyun_122` #zh-ai-side-business
-- @op7418 #zh-ai-tools
-- @向阳乔木 / @vista8 #zh-ai-prompt
-- @teach_fireworks #zh-ai-workflow
+### 补充 4 篇
+9. Lilian Weng: [Why We Think](https://lilianweng.github.io/posts/2025-05-01-thinking/)
+10. Anthropic: [Harness Design for Long-Running Apps](https://www.anthropic.com/engineering/harness-design-long-running-apps)
+11. Karpathy: [How I use LLMs](https://www.youtube.com/watch?v=EWvNQjAaOHw)
+12. Jay Alammar: [The Illustrated Transformer](https://jalammar.github.io/illustrated-transformer/)
 
 ---
 
-## 📰 实时信号
+## 价值打分公式（AI 导师执行）
 
-- [HackerNews AI 主题](https://hnrss.org/newest?q=AI+OR+LLM+OR+Claude+OR+Anthropic&points=30) [rss](https://hnrss.org/newest?q=AI+OR+LLM+OR+Claude+OR+Anthropic&points=30) #ai-only
-- [Show HN](https://hnrss.org/show) [rss](https://hnrss.org/show) #side-project
-- [r/LocalLLaMA](https://www.reddit.com/r/LocalLLaMA/.rss) [rss](https://www.reddit.com/r/LocalLLaMA/.rss) #oss-llm
-- [Hugging Face Daily Papers](https://huggingface.co/papers) #daily-papers
-- 你 vault `01-Sources/x-bookmarks/` 已收藏的 72+ 条 #curated
+每条候选内容打分 0-10，三个维度加权：
 
----
+```
+Value = (Primary × 0.3) + (Influence × 0.4) + (Recency × 0.3)
+```
 
-## 已删除（v2→v3）
+| 维度 | 10 分 | 5 分 | 0 分 |
+|---|---|---|---|
+| **Primary** 一手性 | builder 本人发的 / 官方 blog | 媒体报道 | 评论员转述 |
+| **Influence** 影响力 | Zara 25 + 中文 KOL 28 白名单 / Anthropic 官方 | 业内有声 | 无名营销号 |
+| **Recency** 时效 | < 24h | < 7d | > 30d 几乎过滤；evergreen 例外 |
 
-为 focus AI，**这些非 AI 主题源已删除**：
-
-- 系统底层：Julia Evans / Dan Luu / Brendan Gregg / LWN / ByteByteGo
-- 商业/独立开发：Indie Hackers / Sahil / Naval / Paul Graham / Levels.fyi
-- PKM/思维：Andy Matuschak / Maggie Appleton / Gwern / Ness Labs
-- arXiv firehose（信息量太大）
-
-> 如果未来想恢复，看 v2（git history）。
+**Substantive 二次过滤**（LLM remix 时）：
+- 跳过：mundane / 转推无评论 / 推广 / 应酬
+- 保留：原创观点 / 技术洞察 / 产品发布 / 行业分析 / 教训
 
 ---
 
-## 给 /feed 的提示
+## 3-Tier 分级（输出层）
 
-### 信源优先级 → 权重 boost
-- 优先 1 (Zara) → 权重 +50%
-- 优先 2-3 (个人博客 + Newsletter) → +30%
-- 优先 4 (Agent 专题) → +30%
-- 优先 5-7 → 基准
-- `#must-read` / `#must-watch` 再 +20%
-- `#fresh` (< 7 天发布) → +20%
+| Tier | Value 阈值 | 输出形式 | 推送渠道 |
+|---|---|---|---|
+| 🔴 Tier 1 | ≥ 7 | 完整摘要 + 双语 + 反问 | Discord 推送 |
+| 🟡 Tier 2 | 4-7 | 标题 + 一句话 + 链接 | Discord 推送 |
+| 🟢 Tier 3 | < 4 | 仅标题 + 链接（元数据） | 仅 vault 存档 |
 
-### 多样性强制
-- 主推 + 备选 3 篇，**至少 3 种媒介**（X 推文 / 文字博客 / 视频 / 播客 / GitHub / 中文）
-- 每日至少 1 篇 Zara 优先源命中
-- 每周至少 1 篇中文源 + 1 个 GitHub Release
+每天推送量：
+- Tier 1：当天有几条算几条（没有就 0 条）
+- Tier 2：约 5-15 条
+- Tier 3：约 10-30 条（不推送，只入档）
 
-### 双语输出
-- 英文源：保留英文原标题 + 中文翻译标题
-- 关键术语保留英文（LLM / RAG / agent / context / harness 等）
-- 摘要中文，金句中英对照
+---
 
-### 维护节奏
-- 每周扫一次：删死链 / 加新源
-- 每月评估：根据 `reading-log/` 历史看哪些源真给价值
-- Zara 名单和 prompts 通过 `git pull ~/.claude/skills/follow-builders` 自动同步
+## 双语规则
+
+- 英文原标题保留 + 中文翻译标题
+- 关键术语保留英文：LLM / agent / context / harness / RAG / fine-tune / token / prompt / sandbox / MCP / RLHF / inference / embedding / transformer / multimodal 等
+- 专有名词保留英文：人名、产品名、公司名、产品代号
+- 摘要：中文为主，英文金句段段对照
+- 翻译 prompt 复用 Zara 的 `feed-prompts/translate.md`
+
+---
+
+## 维护节奏（AI 导师自驱）
+
+- **每周**：扫死链 / 关注新冒出的 builder（如某人最近爆红）
+- **每月**：评估 reading-log 价值反馈，淘汰长期 0 命中信源
+- **每季**：evergreen 列表更新（推完一轮后加新经典）
+- **半年**：架构反思（信源池 vs 价值打分是否需要重构）
+
+用户反馈渠道：在 Discord 里回 "👎" 表情或文字反馈，AI 导师下次 digest 调权。
 
 ---
 
 ## 工具依赖
 
-- ✅ Zara skill (`~/.claude/skills/follow-builders/`)
-- ✅ feed-prompts/ 模块化摘要（`$VAULT/00-Wiki/feed-prompts/`）
-- ✅ Claude in Chrome MCP（B 站 / SPA fallback）
+- ✅ Zara skill（feed-x.json 每天 07:32 自动更新）
+- ✅ feed-prompts/（5 个模块化 prompt：digest-intro / summarize-* / translate）
+- ✅ Discord webhook（已配 `~/.follow-builders/.env`）
+- ✅ Claude in Chrome MCP（SPA fallback for Bilibili 等）
 - ✅ redbook skill（小红书）
-- ✅ lark-im / lark-mail（飞书推送）
 - ✅ `gh` / `curl` / `python3` / `yt-dlp`
+- ✅ Claude Code scheduled-tasks（每天 8 AM 触发）
