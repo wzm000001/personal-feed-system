@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.example.feed-daily</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/zsh</string>
+        <string>-c</string>
+        <string>$HOME/.claude/scripts/feed-daily.sh</string>
+    </array>
+
+    <!-- 每天早 8 点触发 -->
+    <key>StartCalendarInterval</key>
+    <dict>
+        <key>Hour</key>
+        <integer>8</integer>
+        <key>Minute</key>
+        <integer>0</integer>
+    </dict>
+
+    <!-- 错过的 schedule 在下次唤醒后立即跑（电脑睡眠/关机时） -->
+    <key>RunAtLoad</key>
+    <false/>
+
+    <!-- 日志路径 -->
+    <key>StandardOutPath</key>
+    <string>$HOME/.claude/logs/feed-daily-launchd.out</string>
+    <key>StandardErrorPath</key>
+    <string>$HOME/.claude/logs/feed-daily-launchd.err</string>
+
+    <!-- 工作目录 -->
+    <key>WorkingDirectory</key>
+    <string>$HOME</string>
+
+    <!-- 环境变量（基础 PATH，脚本内会 source ~/.zshrc） -->
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+        <key>HOME</key>
+        <string>$HOME</string>
+    </dict>
+
+    <!-- 唤醒电脑（如果睡眠中） -->
+    <key>WakeUpAt</key>
+    <true/>
+</dict>
+</plist>

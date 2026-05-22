@@ -1,0 +1,15 @@
+.DS_Store
+*.log
+/logs/
+.env
+.env.local
+
+# 不要提交个人 reading-log（隐私）
+reading-log/
+
+# 不要提交 vault 链接
+00-Wiki/
+
+# IDE
+.vscode/
+.idea/
