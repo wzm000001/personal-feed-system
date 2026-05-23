@@ -150,11 +150,20 @@ exec: cat '"$LLM_WIKI_GLOBAL_DIR"'/00-Wiki/daily-digest-prompt.md
 
 里面有完整 10 阶段(Fetch → 打分 → 时效 → 分级 → **Stage 5 写 md 统一 6 字段 schema** → **Stage 5.5 self-check** → 双语 → HTML(强制 sidebar + nav-section) → Discord → vault 存档 + 跳转链接 → 完成)。
 
-### 2. 读用户档案 + 信源池 + prompts 模板
+### 2. 读 vault 三件套(v8 升级 · 立体认知)
 exec:
-  cat '"$LLM_WIKI_GLOBAL_DIR"'/00-Wiki/user-profile.md
-  cat '"$LLM_WIKI_GLOBAL_DIR"'/00-Wiki/reading-feeds.md
+  cat '"$LLM_WIKI_GLOBAL_DIR"'/00-Wiki/user-profile.md            # 基础 + 当前真问题
+  cat '"$LLM_WIKI_GLOBAL_DIR"'/00-Wiki/vault-topics-summary.md    # 15 topics + 4 concepts 索引
+  cat '"$LLM_WIKI_GLOBAL_DIR"'/00-Wiki/recent-activity.md         # 近 14 天 vault 注意力热度
+  cat '"$LLM_WIKI_GLOBAL_DIR"'/00-Wiki/reading-feeds.md           # 90 信源池
   for f in '"$LLM_WIKI_GLOBAL_DIR"'/00-Wiki/feed-prompts/*.md; do cat "$f"; done
+
+⚠️ Stage 5 引发思考(💭)必须 cite vault-topics-summary 里的具体 topic/concept 路径,不能只用 user-profile 的真问题。
+⚠️ Stage 5 "这条在讲什么"段拆 3-5 段, 每段 ≤3 句, 中间穿插视觉, 禁止 300 字密集长段。
+⚠️ Stage 3.5 信源多样性硬约束: Tier 1 必须跨 3+ 媒介(🎬视频+📱X+📰博客+🐙GitHub+🇨🇳中文圈), GitHub 最多 2 条。
+⚠️ Stage 7 HTML 是"正片", 术语用 CSS+JS popup tooltip(不是 <abbr>), 40+ 词白名单都要 tooltip 化, metaphor 必须基于本条具体内容(禁止 default 模板).
+⚠️ Stage 8 Discord 每块必须含 💎价值点 + 💭 vault cite + 📖去HTML看什么 + 🔗 链接, 严禁 default 文案如"建议放进 agent 工程知识链".
+⚠️ Stage 11 跑完后必须重新生成 vault-topics-summary.md + recent-activity.md。
 
 ### 3. 读 Zara feed (本地 JSON 抓快,核心数据来源)
 exec: cat ~/.claude/skills/follow-builders/feed-{x,podcasts,blogs}.json
