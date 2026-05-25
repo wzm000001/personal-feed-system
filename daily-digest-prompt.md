@@ -406,6 +406,74 @@ Claude Code 的 UX 革命。飞书是国内 builder 最完整的工作 context�
 
 ---
 
+## Stage 5.6 · ⚡ 写 extras.json (v9 新增 · 让 render.py 出富视觉)
+
+> **目的**: HTML 渲染由 `render-html.py` 固定模板做,**但 metaphor / features / SVG 流程图这些"内容增强"需要你这个 LLM 来想**。把它们写进同目录的 `{date}.extras.json`,render.py 会读取并出富视觉。
+
+### 路径
+
+```
+$VAULT/01-Sources/reading-log/{date}.md          # Stage 5 已写
+$VAULT/01-Sources/reading-log/{date}.extras.json # 现在要写
+```
+
+### Schema(严格 JSON)
+
+```json
+{
+  "t1-1": {
+    "metaphor": "一句独特比喻 30-80 字 — 必须基于本条具体事实(产品/数字/场景),禁止 default 模板",
+    "features": [
+      {"emoji": "📊", "title": "短标题 ≤8 字", "desc": "1 句解释 15-30 字"},
+      {"emoji": "🔧", "title": "...", "desc": "..."}
+    ],
+    "flow": ["节点1 ≤8字", "节点2", "节点3", "节点4", "节点5"]
+  },
+  "t1-2": {...},
+  ...
+  "t3-5": {...}
+}
+```
+
+### 三个字段的硬约束
+
+**① metaphor(必填,每条必须独特)**:
+- 用一个生活/工程的具体场景类比这条信号
+- 必须显式提到本条的关键事实(产品名/数字/场景),否则等于通用模板
+- ❌ 禁止: "这条把今天的 AI 工程趋势落到了可执行层" / "想象一下..." 这类空话
+- ✅ 范例(Mainline intent memory):
+  > "想象你接手一个老项目,前任 git log 里只写 'fix bug'。Mainline 给 agent 加了'同事手册',让它动手前能看到'这块代码以前为什么不删 CSV 接口 — 因为 3 个企业客户夜间对账还在用'。"
+
+**② features(必填,4-6 个)**:
+- 拆这条信号的 4-6 个关键 sub-feature
+- 每个 feature = emoji(从 📊⚙️🔍💡🚀🛡️🧩📡🎯🔧🌐🪝 选)+ title(≤8 字)+ desc(15-30 字)
+- 像产品页那种"这个产品的 6 大功能"那种风格
+
+**③ flow(必填,4-5 个节点)**:
+- 这条信号背后的流程/转换/状态机
+- 每个节点 ≤8 字(短文字 + 中文优先)
+- 渲染成 SVG 数据流图(节点 → 箭头 → 节点)
+
+### Tier 2/3 也要写
+
+不是只 Tier 1 写!**所有 16 条(5 Tier1 + 6 Tier2 + 5 Tier3)都必须有 metaphor + features + flow**。否则 render.py 输出 Tier 2/3 时会缺富视觉,跟 Tier 1 不一致(用户明确要求"格式完全一致")。
+
+### 落盘方式
+
+```bash
+cat > $VAULT/01-Sources/reading-log/{date}.extras.json << 'EOF'
+{
+  "t1-1": {...}, ...
+}
+EOF
+```
+
+### 自检
+
+写完后 `cat $VAULT/01-Sources/reading-log/{date}.extras.json | python3 -m json.tool` 确认 JSON 合法。
+
+---
+
 ## Stage 6 · 双语规则（v6 简化）
 
 - **不再要 EN 段 + ZH 段并列**
@@ -416,280 +484,54 @@ Claude Code 的 UX 革命。飞书是国内 builder 最完整的工作 context�
 
 ---
 
-## Stage 7 · HTML 生成(v8 大改 · "正片"模式)
+## Stage 7 · HTML 渲染 (v9 大改 · 调 render-html.py 不自己写)
 
-**核心定位变了**:HTML 不再是 reading-log 的副本,而是 **daily-digest 的"正片"**(Discord 是预告片)。每条 Tier 1/2/3 必须做成"教 vibe coder 看懂这条新信号"的迷你课程,深度教学。
+> **决定性改动**: 不再让你自己拼 HTML 字符串. HTML 风格由 `~/.claude/scripts/render-html.py` 固化:配色/字体/sidebar/卡片/tooltip/响应式 SVG 全在脚本里. 你只需调用脚本,脚本读 md + extras.json → 输出 HTML.
 
-**借鉴 [codebase-to-course-zh](https://github.com/wzm000001/codebase-to-course-zh) 设计哲学**(用户 fork 的中文默认版,这是用户认可的内容形式):
+### 执行
 
-### 🚨 v8 内容深度新约束(每条 Tier 1 模块必备)
-
-| codebase-to-course 哲学 | 落地到 daily-digest HTML |
-|---|---|
-| **Show don't tell** — 50%+ 视觉 | 每条 Tier 1 模块至少 2 个视觉元素(metaphor 插画/流程图/对比卡片/数据图) |
-| **每段最多 2-3 句话** | "讲什么"段拆成 chunks,中间穿插视觉,不允许出现 >4 行的纯文字块 |
-| **Code ↔ 中文左右对照** | 引用推文/文章原文时用 `<div class="translation-block">` 左原文/右中文 |
-| **Metaphor first**(比喻先行) | 每条开头一句生活比喻引入,然后才落到技术。**禁止默认"餐厅"比喻**,每个概念配对应比喻 |
-| **Glossary tooltip** | 见下方"术语白名单"完整 40+ 词,必须用 CSS+JS popup(不是 `<abbr>` 原生 tooltip,那个 hover 3 秒才出且小字看不清) |
-| **Quiz 测应用不测记忆**(已做对) | 保持,但 Quiz 要更具体到"放到你 vault 项目/工作里怎么用" |
-| **One concept per screen** | Tier 1 一条用多个 `<section class="screen">` 隔开,每个屏幕一个 sub-concept |
-
-### 🚨 v8.2 术语白名单 (必须全部 tooltip 化)
-
-每个术语首次出现必须用 `<span class="term" data-def="中文解释">术语</span>`(CSS 加 dotted underline + cursor:pointer,JS 监听 mouseenter 显示 popup)。
-
-**完整白名单 40+ 词**:
-
-| 术语 | 中文解释(放 data-def) |
-|---|---|
-| LLM | 大语言模型,通过预训练 + 微调学到语言能力的神经网络 |
-| agent | 能观察环境/调用工具/循环完成目标的 AI 程序,不只是一次聊天回复 |
-| agentic system | 由多个 agent 协作完成复杂任务的系统 |
-| harness | 包住模型的工程外壳,负责工具/权限/状态/重试/验证 |
-| MCP | Model Context Protocol,统一协议让模型连外部工具/数据源 |
-| RAG | Retrieval-Augmented Generation,先检索再生成,补足模型知识缺口 |
-| sandbox | 隔离执行环境,用边界限制代码/文件/网络副作用 |
-| RLHF | 人类反馈强化学习,用人评分把模型对齐到 helpful/harmless |
-| RLVR | Reinforcement Learning with Verifiable Rewards,用可自动验证的奖励训练 |
-| fine-tune | 微调,在预训练基础上用领域数据继续训练 |
-| token | 模型处理的最小语言单位,~1 个汉字或 0.75 个英文单词 |
-| context | 上下文窗口,模型一次能"看到"的 token 数量 |
-| inference | 推理,把输入跑过模型得到输出 |
-| transformer | LLM 的核心架构,基于 self-attention 机制 |
-| embedding | 向量化,把文本转成数字向量便于检索/聚类 |
-| multimodal | 多模态,模型能同时处理文字/图片/音频/视频 |
-| agent loop | agent 的核心循环: 观察 → 思考 → 行动 → 反思 → 再观察 |
-| chain-of-thought | 思维链,让模型输出中间推理步骤而非直接结论 |
-| reasoning effort | 推理预算等级,low/medium/high/xhigh 控制模型 thinking tokens |
-| prompt engineering | 设计提示词的工程方法 |
-| prompt injection | 攻击者通过用户输入篡改模型指令的安全漏洞 |
-| trace | agent 一次完整执行的事件日志,用于复盘和调试 |
-| eval | 评估,用 benchmark 测模型/agent 在特定任务的表现 |
-| macro eval | 系统级评估,看多个 trace 汇总后的 pattern 而非单条 |
-| observability | 可观测性,系统状态可被外部监控/审计/复盘 |
-| webhook | HTTP 回调,事件发生时主动 POST 通知外部 |
-| OAuth | 第三方授权协议,允许 app 代替用户访问其他服务 |
-| API | 应用程序接口,程序之间的通信约定 |
-| CLI | 命令行接口,通过 terminal 输入命令调用程序 |
-| SDK | 软件开发工具包,包装 API 给开发者用 |
-| skill | Anthropic Skill 系统,把工作流封装成可复用的 Claude 技能 |
-| plugin | 插件,把第三方功能集成进主程序的扩展机制 |
-| launchd | macOS 的系统级定时任务管理器,替代传统 cron |
-| cron | Unix 定时任务调度器,按时间触发命令 |
-| daemon | 守护进程,后台长期运行的程序 |
-| websocket | 全双工 TCP 连接,服务器可主动推消息给浏览器 |
-| sse | Server-Sent Events,服务器单向流式推送数据 |
-| repl | Read-Eval-Print-Loop,交互式语言环境(如 Python REPL) |
-| frontmatter | 文件头部的元数据块,通常用 YAML 写 |
-| repository | git 代码仓库 |
-| pull request | 把代码改动提交到主分支前的审查请求 |
-| backfill | 用历史数据填补新加字段或追溯计算 |
-| idempotent | 幂等,同一操作执行多次效果跟一次相同 |
-
-如果出现白名单外的术语(比如 "Mainline"、"Datasette Agent"、"Codex"),也加 tooltip,自己写一句话解释。
-
-### 🚨 v8.2 metaphor 独特性约束
-
-**每条 Tier 1/2/3 的 metaphor-callout 必须基于本条具体内容**, 禁止使用以下 default 句式:
-- ❌ "这是 [作者] 在说的事 ── 不过他用的词是 [技术术语]"(空 template)
-- ❌ "这条把今天的 AI 工程趋势落到了可执行层"(放任何条都成立)
-- ❌ "想象一下你在 ... 这就是 [X]"(没有具体场景填充)
-
-**必须**: metaphor 要让一个**没有相关背景的朋友秒懂**这条信息的核心。每个 metaphor 必须**显式提到本条的关键事实**(产品名/数字/具体场景),不能泛泛。
-
-✅ 好例(Mainline intent memory):
-> "想象一下,你接手一个老项目,前任在 git log 里只写了 'fix bug'。Mainline 就像给 AI agent 加了一个'同事手册',让它在动手前能看到'这块代码以前为什么不删 CSV 接口 — 因为有 3 个企业客户的夜间对账还在用'。"
-
-❌ 坏例:
-> "Mainline 让 agent 拥有记忆。"(太泛, 没场景)
-
-### Tier 1 模块 HTML 模板(每条照这个写)
-
-```html
-<section class="module" id="t1-1">
-
-  <!-- 1. Hero: 大标题 + 1 句核心观点 -->
-  <div class="module-hero">
-    <div class="module-meta">📅 时效 · 👤 作者 · 互动数</div>
-    <h2>条目标题</h2>
-    <p class="hero-lede">一句话讲清核心观点(20 字以内,用大字号)</p>
-  </div>
-
-  <!-- 2. Metaphor: 生活比喻引入(必须有,不能跳过) -->
-  <div class="metaphor-callout">
-    <span class="metaphor-icon">💡</span>
-    <p>想象一下:[生活场景]。这就是今天 [作者] 在说的事 ── 不过他用的词是 [技术术语]。</p>
-  </div>
-
-  <!-- 3. 讲什么: 拆成 3 个 chunks,每个 chunk 配视觉 -->
-  <div class="screen">
-    <h3>它具体在说什么</h3>
-    <p>(2-3 句)</p>
-    <!-- 视觉: 比如 flow-diagram 或 pattern-cards 或 translation-block 引用原文 -->
-    <div class="flow-diagram">...</div>
-  </div>
-
-  <!-- 4. 💎 价值点: 为什么重要 -->
-  <div class="screen">
-    <h3>💎 为什么这条值得你看</h3>
-    <p>(2 句,讲它揭示了什么模式)</p>
-  </div>
-
-  <!-- 5. 💭 引发思考: 必须 cite vault 具体文件 -->
-  <div class="screen thought-screen">
-    <h3>💭 cite 你 vault 里的具体节点</h3>
-    <div class="thought">
-      <strong>命中 vault `00-Wiki/topics/xxx.md`</strong>:这条 [扩展/补充/反驳] 了你 5/21 写的 X 判断
-      <a href="obsidian://open?vault=bgggcontent&file=00-Wiki/topics/xxx" class="vault-link">→ 打开 vault</a>
-    </div>
-  </div>
-
-  <!-- 6. 📖 带着思考去读: 给阅读问题 -->
-  <div class="reading-prompt">
-    📖 <strong>带着这个问题去看原文</strong>: ...
-  </div>
-
-  <!-- 7. 🎯 Quiz: 应用题,折叠答案 -->
-  <details class="quiz">
-    <summary>🎯 测一下: [具体到用户 vault 的应用题]</summary>
-    <div class="answer">...</div>
-  </details>
-
-  <!-- 8. 🔗 链接 -->
-  <div class="link-row">
-    <a href="原推/原文 URL" class="primary-link">读原文 →</a>
-    <a href="quote 引用源 URL" class="secondary-link">引用源</a>
-  </div>
-
-</section>
+```bash
+exec: python3 ~/.claude/scripts/render-html.py \
+  $VAULT/01-Sources/reading-log/{date}.md \
+  $VAULT/01-Sources/reading-log/{date}.html
 ```
 
-### Tier 2/3 模板(紧凑版,但仍含 metaphor + 1 个视觉 + Quiz)
+### 前置条件 (你前面 Stage 5 + 5.6 必须做完)
 
-不允许把 Tier 2/3 缩成纯文字 — 至少要保留 metaphor-callout + 1 个视觉元素 + Quiz,Tier 2/3 整体可短(每条 6-10 屏内容压成 2-3 屏),但不能丢"5 字段 + 视觉"骨架。
-
-### 🚨 强制结构(缺一不可)
-
-**必须双栏 layout,左侧 sticky sidebar TOC**。参考 `$VAULT/01-Sources/reading-log/2026-05-22.html` 的实现(53KB 那版)。
-
-#### 必须的 HTML 骨架
-
-```html
-<div class="layout">
-  <aside class="sidebar">
-    <h1>Daily AI Digest</h1>
-    <div class="date">{date}</div>
-
-    <nav>
-      <div class="nav-section">
-        <div class="nav-label">🔴 Tier 1 必读</div>
-        <a href="#t1-1">#1 标题</a>
-        <a href="#t1-2">#2 标题</a>
-        <!-- ... -->
-      </div>
-      <div class="nav-section">
-        <div class="nav-label">🟡 Tier 2 值得看</div>
-        <!-- ... -->
-      </div>
-      <div class="nav-section">
-        <div class="nav-label">🟢 Tier 3 背景信号</div>
-        <!-- ... -->
-      </div>
-    </nav>
-  </aside>
-
-  <main class="main">
-    <section class="hero"> ... </section>
-    <section class="module" id="t1-1"> ... </section>
-    <!-- 每条 Tier 1/2/3 一个 module -->
-  </main>
-</div>
-```
-
-#### 必须的术语 tooltip CSS + JS(v8.2 替代 `<abbr>` 原生 tooltip)
-
-```html
-<!-- HTML 用法 -->
-<p>...<span class="term" data-def="包住模型的工程外壳,负责工具/权限/状态/重试/验证">harness</span>...</p>
-
-<!-- CSS -->
-<style>
-.term {
-  border-bottom: 1px dotted var(--forest, #2d5a3f);
-  cursor: pointer;
-  position: relative;
-}
-.term-popup {
-  position: fixed;
-  background: #2d2d2d;
-  color: white;
-  padding: 10px 14px;
-  border-radius: 6px;
-  max-width: 320px;
-  font-size: 13px;
-  line-height: 1.5;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-  z-index: 1000;
-  pointer-events: none;
-}
-</style>
-
-<!-- JS (页面底部 inline) -->
-<script>
-const popup = document.createElement('div');
-popup.className = 'term-popup';
-popup.style.display = 'none';
-document.body.appendChild(popup);
-document.querySelectorAll('.term').forEach(t => {
-  t.addEventListener('mouseenter', e => {
-    popup.textContent = t.dataset.def;
-    const r = t.getBoundingClientRect();
-    popup.style.left = r.left + 'px';
-    popup.style.top = (r.bottom + 6) + 'px';
-    popup.style.display = 'block';
-  });
-  t.addEventListener('mouseleave', () => popup.style.display = 'none');
-});
-</script>
-```
-
-**为什么不用 `<abbr title="...">`**: 浏览器原生 hover 要 3-5 秒才显示,字体小,部分浏览器/字体下没下划线,用户**看不见也用不上**(v8.1 实测如此)。CSS+JS 版本立即显示、字大、可控样式。
-
-#### 必须的 CSS（sidebar 关键样式）
-
-```css
-.layout { display: grid; grid-template-columns: 260px 1fr; }
-.sidebar { position: sticky; top: 0; height: 100vh; overflow-y: auto; padding: 24px; }
-.sidebar a { display: block; padding: 6px 10px; border-radius: 6px; font-size: 13px; }
-.sidebar a:hover { background: var(--cream); }
-.nav-section { margin-bottom: 24px; }
-.nav-label { font-weight: 600; font-size: 11px; text-transform: uppercase; margin-bottom: 8px; }
-```
-
-### 核心要求（不变）
-- **单页 HTML 文件**，inline CSS / JS，离线可用
-- **不是平铺字**，至少 50% 是视觉
-- **滚动模块化**：每条 Tier 1/2/3 一个模块 + 左侧 sticky TOC
-
-### 必备元素（每个 Tier 1 模块至少含 2 个）
-
-| 元素 | 用法 | 实现 |
+| 文件 | 谁负责 | 状态 |
 |---|---|---|
-| 🎯 **Hero 视觉** | 标题 + 1 句核心观点 + 大字视觉强调 | CSS large typography |
-| 📊 **数据 / 对比图** | 用图表展示数字对比（如 "before vs after"、"cost stratification"） | Inline SVG 或 HTML/CSS |
-| 💬 **Group Chat 对话** | iMessage 风格展示"两种观点对话" | CSS 气泡 |
-| 🔄 **数据流 / 流程图** | 比如 brain/hands 解耦展示为流程图 | Inline SVG |
-| 💡 **Tooltip 术语** | hover 看中文解释 | `title` 属性 或 CSS tooltip |
-| 🧠 **Quiz 折叠** | "测试你的理解" + `<details>` 折叠答案 | HTML5 details |
-| ↔️ **Code/Concept 对照** | 左原文/英文 + 右中文解释 | CSS grid |
+| `{date}.md` | 你 (Stage 5) | 必须存在,16 条全 7 字段 |
+| `{date}.extras.json` | 你 (Stage 5.6) | 必须存在,16 条全有 metaphor/features/flow |
+| `{date}.html` | render.py | 自动生成,你不要手写 |
 
-### 视觉风格
-- 中文优化字体（Noto Serif SC / 思源黑体）
-- 不用紫色渐变（避免"AI slop"）
-- Editorial Forest 风格（forest green + warm cream + dusty pink accent）
-- 大字 + 留白 + 视觉节奏
+### 自检
 
-### 输出位置
+```bash
+# 验证产物
+stat $VAULT/01-Sources/reading-log/{date}.html
+# 文件大小应 > 100KB (extras 齐全时)
+
+# 检查关键元素
+grep -c 'metaphor-callout' {date}.html  # 应 ≥ 16
+grep -c 'features-grid' {date}.html      # 应 ≥ 16
+grep -c '<svg' {date}.html               # 应 ≥ 16
+```
+
+### 失败处理
+
+- render.py 不存在 → echo 错误,跳过 HTML 生成但继续 Stage 8 (Discord 仍推)
+- extras.json 不存在 → render.py 仍能跑(降级,只缺富视觉),不算失败
+- 产物 < 50KB → 警告但不阻塞,在 chat echo 加 ⚠️
+
+### 为什么这样设计
+
+之前(v8 / v8.2): 你每天自己写 HTML,风格每天都飘 — 5/23 杂志风,5/24 双栏,5/25 教程风,用户无法形成稳定阅读习惯.
+现在(v9): 模板固定在代码里,你只负责写 metaphor/features/flow 的"内容素材",HTML 拼装由脚本做.
+- 风格 100% 稳定
+- 改样式 = 改 render.py (一次永久)
+- 改内容方向 = 改 prompt (一次永久)
+
+### 输出位置 (不变)
 `$VAULT/01-Sources/reading-log/{YYYY-MM-DD}.html`
 
 ---

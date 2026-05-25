@@ -62,7 +62,7 @@ log "Step 2: 健康检查"
 CODEX_BIN="$HOME/.local/bin/codex"
 if [ ! -x "$CODEX_BIN" ]; then
   # fallback 试 alias 那个 wrapper
-  CODEX_BIN="/path/to/your/codex/wrapper" # 可选 fallback,自己改
+  CODEX_BIN="/path/to/your/codex/wrapper" # 可选 fallback
   if [ ! -x "$CODEX_BIN" ]; then
     log "❌ codex CLI 不可用 - 试过 ~/.local/bin/codex 和 codex-xigua 都找不到"
     exit 1
@@ -161,7 +161,8 @@ exec:
 ⚠️ Stage 5 引发思考(💭)必须 cite vault-topics-summary 里的具体 topic/concept 路径,不能只用 user-profile 的真问题。
 ⚠️ Stage 5 "这条在讲什么"段拆 3-5 段, 每段 ≤3 句, 中间穿插视觉, 禁止 300 字密集长段。
 ⚠️ Stage 3.5 信源多样性硬约束: Tier 1 必须跨 3+ 媒介(🎬视频+📱X+📰博客+🐙GitHub+🇨🇳中文圈), GitHub 最多 2 条。
-⚠️ Stage 7 HTML 是"正片", 术语用 CSS+JS popup tooltip(不是 <abbr>), 40+ 词白名单都要 tooltip 化, metaphor 必须基于本条具体内容(禁止 default 模板).
+⚠️ Stage 5.6 (v9 新增): 写完 md 后必须额外写 {date}.extras.json, 16 条全部有 metaphor/features/flow, JSON 合法(python3 -m json.tool 检查通过).
+⚠️ Stage 7 (v9 改): 不再自己写 HTML, exec python3 ~/.claude/scripts/render-html.py {date}.md {date}.html, render.py 会读 md + extras.json 生成固定模板 HTML.
 ⚠️ Stage 8 Discord 每块必须含 💎价值点 + 💭 vault cite + 📖去HTML看什么 + 🔗 链接, 严禁 default 文案如"建议放进 agent 工程知识链".
 ⚠️ Stage 11 跑完后必须重新生成 vault-topics-summary.md + recent-activity.md。
 
