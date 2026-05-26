@@ -103,132 +103,132 @@ else
   log "  ⚠️ Zara feed 不存在,进入降级模式"
 fi
 
-# Step 3: 调用 codex exec 跑 v8 流程
-log "Step 3: 启动 codex exec 跑 daily-digest v8"
+# Step 3: 拆分两阶段调用 codex (v10 新增 wss 断线 retry)
+# Phase 1: Stage 0-5 写 md (主流程, 30-60min, 容易断)
+# Phase 2: Stage 5.6-11 写 extras+html+Discord+sync (短任务 5min)
+# 两阶段之间产物自检, 失败 retry, 都失败通知用户人工
 
-PROMPT='你是用户的 AI 导师,由 macOS launchd 每天 8 AM 自动触发执行 daily-digest v8 流程(GPT-5.5 + xhigh reasoning,通过 shell exec 工作)。
+MD_PATH="$LLM_WIKI_GLOBAL_DIR/01-Sources/reading-log/$TODAY.md"
+EXTRAS_PATH="$LLM_WIKI_GLOBAL_DIR/01-Sources/reading-log/$TODAY.extras.json"
+HTML_PATH="$LLM_WIKI_GLOBAL_DIR/01-Sources/reading-log/$TODAY.html"
+PROMPT_FILE="$LLM_WIKI_GLOBAL_DIR/00-Wiki/daily-digest-prompt.md"
 
-🚨🚨🚨 执行模式(最高优先级,违反即任务失败):
+verify_md_complete() {
+  [ -f "$MD_PATH" ] || return 1
+  local n=$(grep -c "^### " "$MD_PATH" 2>/dev/null)
+  [ "$n" -ge 16 ]
+}
 
-**你是 non-interactive cron 任务,用户不在场,没人会回答你的任何问题。**
+verify_artifacts_complete() {
+  [ -f "$MD_PATH" ] || return 1
+  [ -f "$EXTRAS_PATH" ] || return 1
+  [ -f "$HTML_PATH" ] || return 1
+  local html_size=$(stat -f %z "$HTML_PATH" 2>/dev/null)
+  [ "$html_size" -ge 50000 ]
+}
+
+notify_failure() {
+  local stage="$1"
+  local reason="$2"
+  log "❌ $stage 失败: $reason"
+  if [ -n "$DISCORD_WEBHOOK_URL" ]; then
+    curl -sS -X POST "${DISCORD_WEBHOOK_URL}?wait=true" \
+      -H "Content-Type: application/json" \
+      -d "{\"content\":\"⚠️ daily-digest $TODAY $stage 失败: $reason. 需手动救场.\"}" >/dev/null 2>&1
+  fi
+}
+
+PROMPT_PHASE1='你是用户的 AI 导师, 由 macOS launchd 每天 8 AM 自动触发, 现在是 daily-digest v10 的 **Phase 1 主流程**。
+
+🚨 Phase 1 只做: Stage 0-5 写 reading-log/{date}.md (16 条 Tier 1/2/3, 7 字段完整)。
+🚨 不做 Stage 5.6 (extras.json) / 7 (HTML) / 8 (Discord) / 11 — Phase 2 做这些。
+
+执行步骤:
+1. cat '"$PROMPT_FILE"' (读完整 spec)
+2. 按 spec 跑 Stage 0-5:
+   - Stage 0: 读 vault 三件套 (user-profile + vault-topics-summary + recent-activity)
+   - Stage 1: 抓 90+ 信源 (Zara feed + RSS + WebFetch + 中文 KOL)
+   - Stage 2: 价值打分
+   - Stage 3: 时效过滤
+   - Stage 3.5: 信源多样性硬约束 (Tier 1 跨 3+ 媒介)
+   - Stage 4: 3-Tier 分级
+   - Stage 5: 写 '"$MD_PATH"' (16 条全 7 字段 schema)
+3. Stage 5.5: cat 自己写的 md 自检, 缺字段补
+4. echo 一行: "✅ Phase 1 完成: md 16 条全字段"
 
 严禁:
-- ❌ 禁止问 "是否继续执行 Stage 7/8?" → 直接 exec 命令执行
-- ❌ 禁止说 "Markdown 文件已生成等待写入权限" → 真的用 heredoc tee 落盘
-- ❌ 禁止说 "数据量较少,是否调整?" → 数据少也必须产出 + 完整推 Discord
-- ❌ 禁止任何形式的 "是否/要不要/建议手动" → 自己做完
-- ❌ 禁止在最后输出长篇报告 → 最后只一行 echo
+- ❌ 写 extras.json / 写 html / 推 Discord — 那是 Phase 2 的事
+- ❌ 问 "是否继续" — non-interactive cron
+- ❌ 数据少就跳过 — 必须产出 16 条'
 
-任务算完成的硬定义(全部满足才算完):
-1. reading-log/{今日}.md 真实落盘(tee/cat heredoc 写过,时间戳=今天)
-2. reading-log/{今日}.html 真实落盘且 ≥ 40KB
-3. 至少 3 次 curl POST 到 DISCORD_WEBHOOK_URL 且 HTTP 200
-4. 最后 echo: ✅ Daily Digest v8 已推 Discord (T1: N, T2: M, T3: K) + HTML 含 sidebar + md 含跳转 + self-check: pass
+PROMPT_PHASE2='你是 daily-digest v10 的 **Phase 2 收尾流程**。
 
----
+🚨 Phase 1 已经写好了 '"$MD_PATH"' (16 条基础内容)。你的工作只剩:
 
-🛠️ codex 工具映射(daily-digest-prompt.md 是为 claude 写的,你要做映射):
+执行步骤:
+1. cat '"$MD_PATH"' 看 16 条 (Tier 1/2/3) 的标题 + 讲什么 + 价值点
+2. 写 '"$EXTRAS_PATH"': 严格 JSON, 16 条 entries (t1-1 t1-2 ... t3-5), 每条:
+   {
+     "metaphor": "独特生活/工程比喻 30-80 字, 必须基于本条具体事实(产品/数字/场景), 禁止 default 模板",
+     "features": [
+       {"emoji": "📊", "title": "≤8 字短标题", "desc": "15-30 字解释"},
+       {"emoji": "🔧", "title": "...", "desc": "..."}
+     ],
+     "flow": ["节点1 ≤8字", "节点2", "节点3", "节点4"]
+   }
+   16 条都要写, features 4-6 个, flow 4-5 节点
+3. 写完后 python3 -m json.tool 验证 JSON 合法
+4. exec python3 '"$HOME"'/.claude/scripts/render-html.py '"$MD_PATH"' '"$HTML_PATH"'
+5. 验证 stat -f %z '"$HTML_PATH"' ≥ 50000 bytes
+6. 分块 curl POST $DISCORD_WEBHOOK_URL?wait=true (预告片模式, 7 块, 详见 '"$PROMPT_FILE"' Stage 8)
+7. Stage 11: 重新生成 $VAULT/00-Wiki/vault-topics-summary.md 和 recent-activity.md
+8. 最后 echo: "✅ Daily Digest v10 已推 Discord (T1: 5, T2: 6, T3: 5) + HTML 含 sidebar + md 含跳转 + extras 齐全 + self-check: pass"
 
-| daily-digest-prompt.md 里说的 | 你(codex)实际怎么做 |
-|---|---|
-| "Read $VAULT/xxx.md" | exec: cat $VAULT/xxx.md |
-| "Write reading-log/x.md" | exec: cat > path << "EOF" ... EOF |
-| "WebFetch URL" | exec: curl -sL "$URL" \| python3 ... |
-| "Edit file 补字段" | exec: python3 -c "..." 或 sed |
-| "Glob *.md" | exec: ls vault/*.md 或 find ... |
-| "Bash curl Discord" | exec: curl -sS -X POST "$DISCORD_WEBHOOK_URL?wait=true" -H ... -d ... |
+严禁:
+- ❌ 重新抓信源 / 重新打分 / 重新分级 — md 已经写好, 你只补 extras + html + Discord
+- ❌ 问 "是否继续" — 直接做完'
 
-VAULT 路径 = '"$LLM_WIKI_GLOBAL_DIR"'
-今日日期 = '"$TODAY"'
+# === Phase 1: 主流程 ===
+for attempt in 1 2; do
+  log "Step 3 Phase 1 (主流程, 第 $attempt 次): codex 写 md"
+  log "  开始执行 (codex GPT-5.5 + xhigh reasoning, 预计 30-60 分钟)..."
+  "$CODEX_BIN" exec \
+    --dangerously-bypass-approvals-and-sandbox \
+    --skip-git-repo-check \
+    --cd "$HOME" \
+    "$PROMPT_PHASE1" 2>&1 | tee -a "$LOG"
+  if verify_md_complete; then
+    log "✅ Phase 1 完成 (第 $attempt 次): md 16 条齐全"
+    break
+  fi
+  log "⚠️ Phase 1 第 $attempt 次 md 不完整, retry"
+  if [ "$attempt" -eq 2 ]; then
+    notify_failure "Phase 1" "md 两次都没写完整"
+    exit 1
+  fi
+done
 
----
+# === Phase 2: 收尾 ===
+for attempt in 1 2 3; do
+  log "Step 3 Phase 2 (收尾, 第 $attempt 次): codex 写 extras + html + Discord"
+  log "  开始执行 (预计 3-10 分钟, 短任务)..."
+  "$CODEX_BIN" exec \
+    --dangerously-bypass-approvals-and-sandbox \
+    --skip-git-repo-check \
+    --cd "$HOME" \
+    "$PROMPT_PHASE2" 2>&1 | tee -a "$LOG"
+  if verify_artifacts_complete; then
+    log "✅ Phase 2 完成 (第 $attempt 次): extras + html + Discord 全齐"
+    break
+  fi
+  log "⚠️ Phase 2 第 $attempt 次产物不完整, retry"
+  if [ "$attempt" -eq 3 ]; then
+    notify_failure "Phase 2" "extras/html 三次都没生成完整 — 已有 md 在 $MD_PATH, 你可手动调 render.py"
+    RC=2
+  fi
+done
 
-## 严格按以下步骤执行
-
-### 1. 读完整流程指令(v7 prompt 文件,对你 codex 也适用,只需按上面工具映射做)
-exec: cat '"$LLM_WIKI_GLOBAL_DIR"'/00-Wiki/daily-digest-prompt.md
-
-里面有完整 10 阶段(Fetch → 打分 → 时效 → 分级 → **Stage 5 写 md 统一 6 字段 schema** → **Stage 5.5 self-check** → 双语 → HTML(强制 sidebar + nav-section) → Discord → vault 存档 + 跳转链接 → 完成)。
-
-### 2. 读 vault 三件套(v8 升级 · 立体认知)
-exec:
-  cat '"$LLM_WIKI_GLOBAL_DIR"'/00-Wiki/user-profile.md            # 基础 + 当前真问题
-  cat '"$LLM_WIKI_GLOBAL_DIR"'/00-Wiki/vault-topics-summary.md    # 15 topics + 4 concepts 索引
-  cat '"$LLM_WIKI_GLOBAL_DIR"'/00-Wiki/recent-activity.md         # 近 14 天 vault 注意力热度
-  cat '"$LLM_WIKI_GLOBAL_DIR"'/00-Wiki/reading-feeds.md           # 90 信源池
-  for f in '"$LLM_WIKI_GLOBAL_DIR"'/00-Wiki/feed-prompts/*.md; do cat "$f"; done
-
-⚠️ Stage 5 引发思考(💭)必须 cite vault-topics-summary 里的具体 topic/concept 路径,不能只用 user-profile 的真问题。
-⚠️ Stage 5 "这条在讲什么"段拆 3-5 段, 每段 ≤3 句, 中间穿插视觉, 禁止 300 字密集长段。
-⚠️ Stage 3.5 信源多样性硬约束: Tier 1 必须跨 3+ 媒介(🎬视频+📱X+📰博客+🐙GitHub+🇨🇳中文圈), GitHub 最多 2 条。
-⚠️ Stage 5.6 (v9 新增): 写完 md 后必须额外写 {date}.extras.json, 16 条全部有 metaphor/features/flow, JSON 合法(python3 -m json.tool 检查通过).
-⚠️ Stage 7 (v9 改): 不再自己写 HTML, exec python3 ~/.claude/scripts/render-html.py {date}.md {date}.html, render.py 会读 md + extras.json 生成固定模板 HTML.
-⚠️ Stage 8 Discord 每块必须含 💎价值点 + 💭 vault cite + 📖去HTML看什么 + 🔗 链接, 严禁 default 文案如"建议放进 agent 工程知识链".
-⚠️ Stage 11 跑完后必须重新生成 vault-topics-summary.md + recent-activity.md。
-
-### 3. 读 Zara feed (本地 JSON 抓快,核心数据来源)
-exec: cat ~/.claude/skills/follow-builders/feed-{x,podcasts,blogs}.json
-
-### 4. 抓 RSS / WebFetch (reading-feeds.md 里列了 ~90 信源)
-exec 多次 curl,失败的源跳过不崩。Tier S/A 信源(头部 25 builder)优先。
-
-### 5. 价值打分(Primary×0.3 + Influence×0.4 + Recency×0.3),时效过滤(<30d 为主 + evergreen 白名单)
-
-### 6. 3-tier 分级(参考 daily-digest-prompt.md Stage 4)
-
-### 7. 写 reading-log/'"$TODAY"'.md (按 6 字段 schema,参考 prompt 里的 few-shot example)
-
-每条 Tier 1/2/3 必须有 7 字段:
-  ① 元数据(📅 时效 + 👤 作者)
-  ② "这条在讲什么"段
-  ③ 💎 价值点
-  ④ 💭 引发的思考(必须 cite user-profile 具体字段,如 data-bp / agentic-systems-theory / AI 副业 / vault / Claude Code)
-  ⑤ 📖 带着思考去读
-  ⑥ 🎯 Quiz + 答案(用 <details> 折叠)
-  ⑦ 🔗 链接
-
-md frontmatter 后必须有一行可点击跳转:
-[📖 查看 HTML 杂志(含目录)](./'"$TODAY"'.html)
-
-### 8. self-check (Stage 5.5)
-exec: cat reading-log/'"$TODAY"'.md, 然后对每条 record 验 7 字段,缺则用 python3 补字段(不要重写整个文件)
-
-### 9. 写 reading-log/'"$TODAY"'.html
-必须双栏 layout + <aside class="sidebar"> + Tier 1/2/3 三个 nav-section。参考 reading-log/2026-05-22.html 的 sidebar 实现(53KB 那版)。
-
-### 10. 推 Discord (Stage 8)
-分块 curl POST 到 $DISCORD_WEBHOOK_URL?wait=true,每块 < 1900 字符:
-- Block 1: 头部(日期 + Tier 统计 + 提示有 HTML 杂志)
-- Block 2..N: 每条 Tier 1 单独一块
-- Block N+1: Tier 2 合并
-- Block N+2: Tier 3 简版
-
-每块 POST 后检查 HTTP 200,失败 retry 1 次。
-
-### 11. 最后 echo 一行结果
-✅ Daily Digest v8 已推 Discord (T1: N, T2: M, T3: K) + HTML 含 sidebar + md 含跳转 + self-check: pass
-
-## 关键约束
-- focus AI(跳过非 AI,如 sama 悼念推、政治、应酬)
-- 双语(中文为主,关键术语和人名/产品名/公司名保留英文)
-- 任何源失败降级不崩
-- 你不被任何东西打断,一路 exec 到 echo 那行结束
-- DISCORD_WEBHOOK_URL 已经在 env 里(你执行 echo $DISCORD_WEBHOOK_URL 能拿到)
-
-立即开始执行。'
-
-log "  开始执行 (codex GPT-5.5 + xhigh reasoning,预计 30-60 分钟)..."
-
-# codex exec:
-#   --dangerously-bypass-approvals-and-sandbox = cron 任务跳沙箱,允许写 vault + curl 外网
-#   --skip-git-repo-check = 不在 git repo 也能跑
-#   --cd $HOME = 在 home 目录跑,避免 cwd 限制
-"$CODEX_BIN" exec \
-  --dangerously-bypass-approvals-and-sandbox \
-  --skip-git-repo-check \
-  --cd "$HOME" \
-  "$PROMPT" 2>&1 | tee -a "$LOG"
-RC=$?
+[ -z "$RC" ] && RC=0
 
 log "Step 4: 完成"
 if [ $RC -eq 0 ]; then
