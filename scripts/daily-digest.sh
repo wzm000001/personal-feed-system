@@ -128,6 +128,8 @@ HTML_PATH="$LLM_WIKI_GLOBAL_DIR/01-Sources/reading-log/$TODAY.html"
 PROMPT_FILE="$LLM_WIKI_GLOBAL_DIR/00-Wiki/daily-digest-prompt.md"
 PHASE1_MAX_ATTEMPTS="${PHASE1_MAX_ATTEMPTS:-3}"
 PHASE2_MAX_ATTEMPTS="${PHASE2_MAX_ATTEMPTS:-3}"
+PHASE1_TIMEOUT_SECONDS="${PHASE1_TIMEOUT_SECONDS:-4500}"
+PHASE2_TIMEOUT_SECONDS="${PHASE2_TIMEOUT_SECONDS:-1200}"
 
 if [ ! -f "$PROMPT_FILE" ]; then
   log "❌ 主 prompt 不存在: $PROMPT_FILE"
@@ -176,13 +178,79 @@ notify_failure() {
 run_codex_phase() {
   local phase_name="$1"
   local prompt="$2"
+  local timeout_seconds="$3"
   set +e
-  "$CODEX_BIN" exec \
-    --dangerously-bypass-approvals-and-sandbox \
-    --skip-git-repo-check \
-    --cd "$HOME" \
-    "$prompt" 2>&1 | tee -a "$LOG"
-  local codex_rc=${pipestatus[1]:-0}
+  CODEX_PHASE_NAME="$phase_name" \
+  CODEX_PROMPT="$prompt" \
+  CODEX_TIMEOUT_SECONDS="$timeout_seconds" \
+  CODEX_BIN="$CODEX_BIN" \
+  CODEX_WORKDIR="$HOME" \
+  LOG="$LOG" \
+  python3 - <<'PY'
+import os
+import select
+import signal
+import subprocess
+import sys
+import time
+
+phase = os.environ["CODEX_PHASE_NAME"]
+timeout = int(os.environ["CODEX_TIMEOUT_SECONDS"])
+cmd = [
+    os.environ["CODEX_BIN"],
+    "exec",
+    "--dangerously-bypass-approvals-and-sandbox",
+    "--skip-git-repo-check",
+    "--cd",
+    os.environ["CODEX_WORKDIR"],
+    os.environ["CODEX_PROMPT"],
+]
+
+def emit(log, text):
+    sys.stdout.write(text)
+    sys.stdout.flush()
+    log.write(text)
+    log.flush()
+
+with open(os.environ["LOG"], "a", encoding="utf-8", buffering=1) as log:
+    proc = subprocess.Popen(
+        cmd,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        bufsize=1,
+        preexec_fn=os.setsid,
+    )
+    started = time.monotonic()
+    while True:
+        if proc.stdout is not None:
+            ready, _, _ = select.select([proc.stdout], [], [], 1.0)
+            if ready:
+                line = proc.stdout.readline()
+                if line:
+                    emit(log, line)
+        rc = proc.poll()
+        if rc is not None:
+            if proc.stdout is not None:
+                for line in proc.stdout:
+                    emit(log, line)
+            sys.exit(rc)
+        if time.monotonic() - started > timeout:
+            msg = f"[{time.strftime('%H:%M:%S')}] ⚠️ {phase} 超过 {timeout}s, 终止本次 codex exec\n"
+            emit(log, msg)
+            try:
+                os.killpg(proc.pid, signal.SIGTERM)
+            except ProcessLookupError:
+                pass
+            time.sleep(10)
+            if proc.poll() is None:
+                try:
+                    os.killpg(proc.pid, signal.SIGKILL)
+                except ProcessLookupError:
+                    pass
+            sys.exit(124)
+PY
+  local codex_rc=$?
   set -e
   if [ "$codex_rc" -ne 0 ]; then
     log "  ⚠️ codex exec 退出码: $codex_rc ($phase_name)"
@@ -245,7 +313,7 @@ attempt=1
 while [ "$attempt" -le "$PHASE1_MAX_ATTEMPTS" ]; do
   log "Step 3 Phase 1 (主流程, 第 $attempt 次): codex 写 md"
   log "  开始执行 (codex GPT-5.5 + xhigh reasoning, 预计 30-60 分钟)..."
-  run_codex_phase "Phase 1 attempt $attempt" "$PROMPT_PHASE1"
+  run_codex_phase "Phase 1 attempt $attempt" "$PROMPT_PHASE1" "$PHASE1_TIMEOUT_SECONDS"
   if verify_md_complete; then
     log "✅ Phase 1 完成 (第 $attempt 次): md 16 条齐全"
     break
@@ -266,7 +334,7 @@ attempt=1
 while [ "$attempt" -le "$PHASE2_MAX_ATTEMPTS" ]; do
   log "Step 3 Phase 2 (收尾, 第 $attempt 次): codex 写 extras + html + Discord"
   log "  开始执行 (预计 3-10 分钟, 短任务)..."
-  run_codex_phase "Phase 2 attempt $attempt" "$PROMPT_PHASE2"
+  run_codex_phase "Phase 2 attempt $attempt" "$PROMPT_PHASE2" "$PHASE2_TIMEOUT_SECONDS"
   if verify_artifacts_complete; then
     log "✅ Phase 2 完成 (第 $attempt 次): extras + html + Discord 全齐"
     break
